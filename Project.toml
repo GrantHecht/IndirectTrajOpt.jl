@@ -1,0 +1,13 @@
+name = "IndirectTrajOpt"
+uuid = "99e47ffd-a99c-4d17-8b51-d4481b168213"
+authors = ["Grant Hecht"]
+version = "0.1.0"
+
+[compat]
+julia = "1.6"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
