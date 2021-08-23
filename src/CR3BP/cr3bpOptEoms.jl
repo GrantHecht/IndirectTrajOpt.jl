@@ -1,6 +1,7 @@
+abstract type AbstractCR3BPIndirectParams end
 
 # CR3BP Indirect parameters 
-mutable struct CR3BPIndirectParams
+mutable struct CR3BPIndirectParams <: AbstractCR3BPIndirectParams
     # Spacecraft parameters 
     sp::SimpleSpacecraft
 
@@ -19,7 +20,7 @@ mutable struct CR3BPIndirectParams
 end
 
 # CR3BP CoState Dynamics
-function cr3bpCostateEom(u::AbstractArray, p::CR3BPIndirectParams, γ)
+function cr3bpCostateEom(u::AbstractArray, p::AbstractCR3BPIndirectParams, γ)
     @inbounds begin
         # Get requirements 
         TU  = p.crp.TU
@@ -69,7 +70,7 @@ function cr3bpCostateEom(u::AbstractArray, p::CR3BPIndirectParams, γ)
 end
 
 function cr3bpCostateEom!(dλ::AbstractArray, u::AbstractArray, 
-                          p::CR3BPIndirectParams, γ)
+                          p::AbstractCR3BPIndirectParams, γ)
     @inbounds begin
     # Get requirements 
     TU  = p.crp.TU
@@ -112,11 +113,12 @@ function cr3bpCostateEom!(dλ::AbstractArray, u::AbstractArray,
     dλ[6] = -u[10]
     dλ[7] = -λv*γ*tMaxSc / (u[7]^2)
     end
-    return nothing
+
+    return @SVector [G11, G22, G33, G12, G13, G23]
 end
 
 # CR3BP Indirect EOMs 
-function cr3bpEomIndirect(u::AbstractVector,p::CR3BPIndirectParams,t)
+function cr3bpEomIndirect(u::AbstractVector,p::AbstractCR3BPIndirectParams,t)
     @inbounds begin
 
     # Get requirements 
@@ -157,7 +159,7 @@ function cr3bpEomIndirect(u::AbstractVector,p::CR3BPIndirectParams,t)
 end
 
 function cr3bpEomIndirect!(du::AbstractVector, u::AbstractVector,
-                           p::CR3BPIndirectParams, t)
+                           p::AbstractCR3BPIndirectParams, t)
     @inbounds begin
     # Get requirements 
     TU  = p.crp.TU
@@ -189,9 +191,9 @@ function cr3bpEomIndirect!(du::AbstractVector, u::AbstractVector,
     # Compute dynamics
     cr3bpEomControl!(view(du,1:6), u, p.crp, t, at)
     du[7] = -γ*tMaxSc / cSc
-    cr3bpCostateEom!(view(du,8:14), u, p, γ)
+    GVec  = cr3bpCostateEom!(view(du,8:14), u, p, γ)
     end
-    return nothing
+    return GVec
 end
 
 # Utility Functions 

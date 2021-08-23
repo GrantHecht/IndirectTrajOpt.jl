@@ -21,7 +21,7 @@ function main()
 
     # Integrate
     tspan = (0.0, 8.6404*24*3600/ps.crp.TU)
-    #@btime cr3bpOptIntegrate($y0, $tspan, $ps)
+    @btime cr3bpOptIntegrate($y0, $tspan, $ps)
     #sol = cr3bpOptIntegrate(y0, tspan, ps)
     #display(plot(sol, vars=(1,2)))
 
