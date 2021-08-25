@@ -28,7 +28,7 @@ function cr3bpEomIndirectWithSTM!(du::AbstractVector, u::AbstractVector,
         GVec = cr3bpEomIndirect!(du, u, p, t)
 
         # Dynamics Jacobian
-        jac = p.m1
+        jac = p.m1; jac .= 0.0
         cr3bpEOMJac!(jac, u, p, GVec)
 
         # Compute STM derivs 
@@ -213,7 +213,7 @@ end
 
 function compute_G2!(jac::AbstractMatrix, u::AbstractVector, λv, tMaxSc, cSc, ϵ, γ)
     @inbounds begin
-        λvInv   = 1.0 / λ_v
+        λvInv   = 1.0 / λv
         λvInv2  = λvInv*λvInv
         λvInv3  = λvInv2*λvInv
         temp1   = -γ*tMaxSc / u[7]

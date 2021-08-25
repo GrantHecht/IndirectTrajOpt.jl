@@ -61,7 +61,9 @@ function cr3bpEomsAffect!(integrator, idx)
                 integrator.p.utype = 1
             else
                 cSc = isp*9.81*TU / (LU*1000.0)
-                λv = sqrt(u[11]*u[11] + u[12]*u[12] + u[13]*u[13])
+                λv = sqrt(integrator.u[11]*integrator.u[11] + 
+                          integrator.u[12]*integrator.u[12] + 
+                          integrator.u[13]*integrator.u[13])
                 S = computeS(integrator.u, λv, cSc)
                 if S < 0.0
                     integrator.p.utype = 2
@@ -138,7 +140,9 @@ function cr3bpEomsAffectNoTerm!(integrator)
             integrator.p.utype = 1
         else
             cSc = isp*9.81*TU / (LU*1000.0)
-            λv = sqrt(u[11]*u[11] + u[12]*u[12] + u[13]*u[13])
+            λv = sqrt(integrator.u[11]*integrator.u[11] + 
+                      integrator.u[12]*integrator.u[12] + 
+                      integrator.u[13]*integrator.u[13])
             S = computeS(integrator.u, λv, cSc)
             if S < 0.0
                 integrator.p.utype = 2
@@ -175,7 +179,9 @@ function cr3bpEomsAffectNoTermWithSTM!(integrator)
             integrator.p.utype = 1
         else
             cSc = isp*9.81*TU / (LU*1000.0)
-            λv = sqrt(u[11]*u[11] + u[12]*u[12] + u[13]*u[13])
+            λv = sqrt(integrator.u[11]*integrator.u[11] + 
+                      integrator.u[12]*integrator.u[12] + 
+                      integrator.u[13]*integrator.u[13])
             S = computeS(integrator.u, λv, cSc)
             if S < 0.0
                 integrator.p.utype = 2
@@ -234,6 +240,7 @@ function propSTM!(u::AbstractVector, ps::CR3BPIndirectWithSTMParams)
 
         # Compute 1 / Sdot and ∂S/∂y / Sdot
         dSInv   = (u[8] - 2.0*u[12])*u[11] + (u[9] + 2.0*u[11])*u[12] + u[10]*u[13]
+        dSInv   = λv*u[7]/(cSc*dSInv)
         temp    = -cSc*dSInv / (u[7]*λv)
         ∂SdSInv = @SVector [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
                             λv*cSc*dSInv / (u[7]^2), 

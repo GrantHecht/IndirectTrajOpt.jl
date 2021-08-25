@@ -2,7 +2,8 @@
 # costate differential equations. Uses vector continuous callback for switch detection
 # and termination if fuel is depleated for impact with body. A copy of parameters is 
 # created if copyParams = true, which is required if numerically integrating in parallel
-function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR3BPIndirectParams; copyParams = false)
+function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR3BPIndirectParams; 
+    copyParams = false, termCallbacks = false)
 
     # Copy parameters if desired
     if copyParams 
@@ -24,16 +25,29 @@ function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR
     end
 
     # Instantiate callback
-    cb = VectorContinuousCallback(
-        cr3bpEomsCondition,
-        cr3bpEomsAffect!,
-        cr3bpEomsAffect!, 4;
-        idxs = nothing,
-        rootfind = true,
-        interp_points = 10,
-        abstol = 1e-14,
-        reltol = 0.0,
-        save_positions = (false, false))
+    if termCallbacks
+        cb = VectorContinuousCallback(
+            cr3bpEomsCondition,
+            cr3bpEomsAffect!,
+            cr3bpEomsAffect!, 4;
+            idxs = nothing,
+            rootfind = true,
+            interp_points = 10,
+            abstol = 1e-14,
+            reltol = 0.0,
+            save_positions = (false, false))
+    else
+        cb = ContinuousCallback(
+            cr3bpEomsConditionNoTerm,
+            cr3bpEomsAffectNoTerm!,
+            cr3bpEomsAffectNoTerm!;
+            idxs = nothing,
+            rootfind = true,
+            interp_points = 10,
+            abstol = 1e-14,
+            reltol = 0.0,
+            save_positions = (false, false))
+    end
 
     # ODE Problem
     ff = ODEFunction{true}(cr3bpEomIndirect!)

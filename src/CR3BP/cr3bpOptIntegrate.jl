@@ -1,8 +1,8 @@
 
-function cr3bpOptIntegrate(y0, tspan, ps::AbstractCR3BPIndirectParams)
+function cr3bpOptIntegrate(y0, tspan, ps::AbstractCR3BPIndirectParams; termCallbacks = false)
 
    # Instantiate problem 
-   prob = createCR3BPODEProb(y0, tspan, ps) 
+   prob = createCR3BPODEProb(y0, tspan, ps; termCallbacks = termCallbacks) 
 
     # Solve ode 
     sol = solve(
@@ -28,7 +28,7 @@ function cr3bpOptWithSTMIntegrate(z0, tspan, ps::CR3BPIndirectWithSTMParams)
     # Solve ode 
     sol = solve(
         prob,
-        TsitPap8(),
+        Vern9(),
         reltol = 1e-14,
         abstol = 1e-14,
         save_everystep = false,
