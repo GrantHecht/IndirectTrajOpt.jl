@@ -194,14 +194,14 @@ end
 function propSTM!(u::AbstractVector, ps::CR3BPIndirectWithSTMParams)
     @inbounds begin
         # Get requirements 
-        TU  = p.crp.TU
-        LU  = p.crp.LU
-        MU  = p.crp.MU 
-        μ   = p.crp.μ
-        c   = p.sp.c
+        TU  = ps.crp.TU
+        LU  = ps.crp.LU
+        MU  = ps.crp.MU 
+        μ   = ps.crp.μ
+        c   = ps.sp.c
 
         # Scale Requirements
-        tMaxSc = p.sp.tMax * TU * TU / (MU*LU*1000.0)
+        tMaxSc = ps.sp.tMax * TU * TU / (MU*LU*1000.0)
         cSc = c*TU / (LU*1000.0)
 
         # Compute Requirements 
