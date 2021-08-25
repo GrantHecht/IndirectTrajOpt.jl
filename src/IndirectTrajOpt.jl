@@ -20,6 +20,8 @@ include("CR3BP/cr3bpEomsMTK.jl")
 
 # Exports 
 export initCR3BPIndirectParams
+export initCR3BPIndirectWithSTMParams
 export cr3bpOptIntegrate
+export cr3bpOptWithSTMIntegrate
 
 end
