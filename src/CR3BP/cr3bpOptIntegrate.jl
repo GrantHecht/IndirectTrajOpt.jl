@@ -1,8 +1,10 @@
 
-function cr3bpOptIntegrate(y0, tspan, ps::AbstractCR3BPIndirectParams; termCallbacks = false)
+function cr3bpOptIntegrate(y0, tspan, ps::AbstractCR3BPIndirectParams; 
+    copyParams = false, termCallbacks = false, inPlace = false)
 
    # Instantiate problem 
-   prob = createCR3BPODEProb(y0, tspan, ps; termCallbacks = termCallbacks) 
+   prob = createCR3BPODEProb(y0, tspan, ps; 
+    copyParams = copyParams, termCallbacks = termCallbacks, inPlace = inPlace) 
 
     # Solve ode 
     sol = solve(

@@ -251,16 +251,13 @@ function propSTM!(u::AbstractVector, ps::CR3BPIndirectWithSTMParams)
                             -1.0*dSInv]
 
         # Compute Ψ using allocated jac matrix in parameters 
-        Ψ = ps.m1; Ψ .= 0.0
-        for i in 1:14
-            Ψ[i,i] = 1.0
-        end
-        mul!(Ψ, dyDiff, transpose(∂SdSInv), 1.0, 1.0)
+        Ψ = ps.m1
+        vecOuterProdPlusI!(Ψ, dyDiff, ∂SdSInv)
 
         # Propagate STM 
         Φ⁺ = reshape(view(u, 15:210), (14,14))
         Φ⁻ = ps.m2; Φ⁻ .= Φ⁺
-        mul!(Φ⁺, Ψ, Φ⁻)
+        Octavian.matmul!(Φ⁺, Ψ, Φ⁻)
     end
     return nothing
 end

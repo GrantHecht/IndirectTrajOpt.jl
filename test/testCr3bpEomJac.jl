@@ -73,7 +73,6 @@ stm = ForwardDiff.jacobian(
 
 # Evaluate STM difference
 jacDiff = abs.(reshape(zf[15:end], (14,14)) .- stm)
-display(jacDiff)
 
 # Tests 
 for i in 1:196
