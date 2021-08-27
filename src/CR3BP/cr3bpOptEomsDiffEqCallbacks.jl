@@ -85,7 +85,7 @@ function cr3bpEomsAffect!(integrator, idx)
 
     # Termination affect
     else
-        println("Terminating!")
+        #println("Terminating!")
         terminate!(integrator)
     end
 end
