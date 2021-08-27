@@ -34,7 +34,7 @@ function cr3bpEomIndirectWithSTM!(du::AbstractVector, u::AbstractVector,
         # Compute STM derivs 
         Φ   = reshape(view(u,  15:210), (14,14))
         dΦ  = reshape(view(du, 15:210), (14,14))
-        mul!(dΦ, jac, Φ)
+        Octavian.matmul!(dΦ, jac, Φ, 1.0, 0.0)
     end
     return nothing
 end

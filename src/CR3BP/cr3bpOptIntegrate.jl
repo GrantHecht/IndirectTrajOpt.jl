@@ -1,8 +1,10 @@
 
-function cr3bpOptIntegrate(y0, tspan, ps::AbstractCR3BPIndirectParams; termCallbacks = false)
+function cr3bpOptIntegrate(y0, tspan, ps::AbstractCR3BPIndirectParams; 
+    copyParams = false, termCallbacks = false, inPlace = false)
 
    # Instantiate problem 
-   prob = createCR3BPODEProb(y0, tspan, ps; termCallbacks = termCallbacks) 
+   prob = createCR3BPODEProb(y0, tspan, ps; 
+    copyParams = copyParams, termCallbacks = termCallbacks, inPlace = inPlace) 
 
     # Solve ode 
     sol = solve(
@@ -16,8 +18,14 @@ function cr3bpOptIntegrate(y0, tspan, ps::AbstractCR3BPIndirectParams; termCallb
         maxiters = 1e6
         )
 
+    # Compute time to desired final time if terminated
+    timeToFinalTime = 0.0
+    if termCallbacks && sol.retcode != :Success
+        timeToFinalTime = tspan[2] - sol.t[end]
+    end
+
     # Return final states and co-states
-    return sol[end]
+    return sol[end], timeToFinalTime
 end
 
 function cr3bpOptWithSTMIntegrate(z0, tspan, ps::CR3BPIndirectWithSTMParams)

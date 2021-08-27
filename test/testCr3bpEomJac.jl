@@ -62,6 +62,12 @@ for utype in [0,2]
     end
 end
 
+# Define function for test
+function cr3bpAnalyticJacTestFunc(x, tspan, ps)
+    out, extra = cr3bpOptIntegrate(x, tspan, ps)
+    return out
+end
+
 # Integrate state and co-states with STM 
 ps.ϵ = 0.0
 tspan = (0.0, 8.6404*24*3600/ps.crp.TU)
@@ -69,11 +75,10 @@ zf = cr3bpOptWithSTMIntegrate(z0, tspan, ps)
 
 # Compute STM with ForwardDiff
 stm = ForwardDiff.jacobian(
-    (x)->cr3bpOptIntegrate(x, tspan, ps), y0)
+    (x)->cr3bpAnalyticJacTestFunc(x, tspan, ps), y0)
 
 # Evaluate STM difference
 jacDiff = abs.(reshape(zf[15:end], (14,14)) .- stm)
-display(jacDiff)
 
 # Tests 
 for i in 1:196

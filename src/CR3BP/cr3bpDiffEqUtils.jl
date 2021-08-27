@@ -3,7 +3,7 @@
 # and termination if fuel is depleated for impact with body. A copy of parameters is 
 # created if copyParams = true, which is required if numerically integrating in parallel
 function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR3BPIndirectParams; 
-    copyParams = false, termCallbacks = false)
+    copyParams = false, termCallbacks = false, inPlace = false)
 
     # Copy parameters if desired
     if copyParams 
@@ -50,7 +50,11 @@ function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR
     end
 
     # ODE Problem
-    ff = ODEFunction{true}(cr3bpEomIndirect!)
+    if inPlace
+        ff = ODEFunction{true}(cr3bpEomIndirect!)
+    else
+        ff = ODEFunction{false}(cr3bpEomIndirect)
+    end
     return ODEProblem(ff, y0, tspan, ps; callback=cb)
 end
 
