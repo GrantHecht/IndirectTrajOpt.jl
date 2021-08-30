@@ -8,8 +8,8 @@ using Octavian
 #using ModelingToolkit
 
 # Utils
-include("Spacecraft.jl")
-include("matVecMulUtils.jl")
+include("Utils/Spacecraft.jl")
+include("Utils/matVecMulUtils.jl")
 
 # CR3BP 
 include("CR3BP/cr3bpEoms.jl")
