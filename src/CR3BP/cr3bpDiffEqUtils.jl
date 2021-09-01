@@ -63,7 +63,8 @@ function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, scenario::String)
     return createCR3BPODEProb(y0, tspan, ps)
 end
 
-function createCR3BPODEWithSTMProb(z0::AbstractVector, tspan::Tuple, params::CR3BPIndirectWithSTMParams; copyParams = false)
+function createCR3BPODEWithSTMProb(z0::AbstractVector, tspan::Tuple, params::CR3BPIndirectWithSTMParams; 
+    copyParams = false)
 
     # Copy parameters if desired
     if copyParams 
