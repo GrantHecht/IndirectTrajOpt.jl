@@ -51,6 +51,28 @@ function cr3bpOptIntegrate(y0, tspan, ps::AbstractCR3BPIndirectParams, flag::Sin
     return sol[end]
 end
 
+function cr3bpOptIntegrate(y0, tspan, ϵ, ps::AbstractCR3BPIndirectParams, flag::SingleOutput; 
+    copyParams = false, termCallbacks = false, inPlace = false)
+
+    # Instantiate problem 
+    prob = createCR3BPODEProb(y0, tspan, ps; copyParams = copyParams, 
+        termCallbacks = termCallbacks, inPlace = inPlace, ϵ = ϵ) 
+
+    # Solve ode 
+    sol = solve(
+        prob,
+        Vern9(),
+        reltol = 1e-14,
+        abstol = 1e-14,
+        save_everystep = false,
+        save_start = false,
+        initialize_save = false,
+        maxiters = 1e6
+        )
+
+    # Return final states and co-states
+    return sol[end]
+end
 
 function cr3bpOptWithSTMIntegrate(z0, tspan, ps::CR3BPIndirectWithSTMParams; copyParams = false)
 
@@ -76,8 +98,7 @@ end
 function cr3bpOptWithSTMIntegrate(z0, tspan, ϵ, ps::CR3BPIndirectWithSTMParams; copyParams = false)
 
     # Instantiate problem 
-    prob = createCR3BPODEWithSTMProb(z0, tspan, ps; copyParams) 
-    prob.p.ϵ = ϵ
+    prob = createCR3BPODEWithSTMProb(z0, tspan, ps; copyParams = copyParams, ϵ = ϵ) 
 
     # Solve ode 
     sol = solve(

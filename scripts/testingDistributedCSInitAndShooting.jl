@@ -1,3 +1,9 @@
+using Distributed
+if length(procs()) == 1
+    addprocs(1)
+end
+
+@everywhere begin
 using IndirectTrajOpt
 using Heuristics
 using IndirectCoStateInit
@@ -8,6 +14,7 @@ using StaticArrays
 ps = initCR3BPIndirectParams("Low Thrust 10 CR3BP")
 tspan = (0.0, 8.6404*24*3600/ps.crp.TU)
 bvpFunc(y0) = cr3bpOptIntegrate(y0, tspan, ps, copyParams = true, termCallbacks = true)
+end
 
 # Initialize BVP function w/ STM 
 psSTM = initCR3BPIndirectWithSTMParams("Low Thrust 10 CR3BP")
@@ -24,7 +31,7 @@ fcs = [ 0.823385182067467, 0.0, -0.022277556273235,
 # Initialize FFS Initializer 
 csInitializer = FSSCoStateInitializer(bvpFunc, ics, fcs; 
                                     optimizer = :MS_PSO,
-                                    numParticles = 1000,
+                                    numParticles = 500,
                                     initMethod = :Uniform,
                                     displayInterval = 5,
                                     maxStallIters = 50,

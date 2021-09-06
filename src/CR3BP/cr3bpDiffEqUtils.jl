@@ -3,13 +3,18 @@
 # and termination if fuel is depleated for impact with body. A copy of parameters is 
 # created if copyParams = true, which is required if numerically integrating in parallel
 function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR3BPIndirectParams; 
-    copyParams = false, termCallbacks = false, inPlace = false)
+    copyParams = false, termCallbacks = false, inPlace = false, ϵ = -1.0)
 
     # Copy parameters if desired
     if copyParams 
         ps = deepcopy(params)
     else
         ps = params 
+    end
+
+    # Set ϵ if desired 
+    if ϵ >= 0
+        ps.ϵ = ϵ
     end
     
     # Check that utype is set appropriately
@@ -64,13 +69,18 @@ function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, scenario::String)
 end
 
 function createCR3BPODEWithSTMProb(z0::AbstractVector, tspan::Tuple, params::CR3BPIndirectWithSTMParams; 
-    copyParams = false)
+    copyParams = false, ϵ = -1.0)
 
     # Copy parameters if desired
     if copyParams 
         ps = deepcopy(params)
     else
         ps = params 
+    end
+
+    # Set ϵ if desired 
+    if ϵ >= 0.0
+        ps.ϵ = ϵ
     end
     
     # Check that utype is set appropriately

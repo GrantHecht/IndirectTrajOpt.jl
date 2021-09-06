@@ -4,7 +4,7 @@ using ForwardDiff
 using IndirectTrajOpt
 
 # Initialize parameters
-ps = initCR3BPIndirectWithSTMParams("Low Thrust CR3BP")
+ps = initCR3BPIndirectWithSTMParams("Low Thrust 10 CR3BP")
 
 # Initial condition vector
 y0 = [-0.019488511458668, -0.016033479812051, 0.0,
@@ -69,18 +69,21 @@ function cr3bpAnalyticJacTestFunc(x, tspan, ps)
 end
 
 # Integrate state and co-states with STM 
-ps.ϵ = 0.0
-tspan = (0.0, 8.6404*24*3600/ps.crp.TU)
-zf = cr3bpOptWithSTMIntegrate(z0, tspan, ps)
+for ϵ in [1.0, 0.5, 0.0]
+    ps.ϵ = ϵ
+    tspan = (0.0, 8.6404*24*3600/ps.crp.TU)
+    zf = cr3bpOptWithSTMIntegrate(z0, tspan, ps)
 
-# Compute STM with ForwardDiff
-stm = ForwardDiff.jacobian(
-    (x)->cr3bpAnalyticJacTestFunc(x, tspan, ps), y0)
+    # Compute STM with ForwardDiff
+    stm = ForwardDiff.jacobian(
+        (x)->cr3bpAnalyticJacTestFunc(x, tspan, ps), y0)
 
-# Evaluate STM difference
-jacDiff = abs.(reshape(zf[15:end], (14,14)) .- stm)
+    # Evaluate STM difference
+    jacDiff = abs.(reshape(zf[15:end], (14,14)) .- stm)
+    display(jacDiff)
 
-# Tests 
-for i in 1:196
-    @test jacDiff[i] < 1e-2
+    # Tests 
+    for i in 1:196
+        @test jacDiff[i] < 1e-2
+    end
 end
