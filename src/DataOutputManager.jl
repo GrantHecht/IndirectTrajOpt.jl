@@ -28,7 +28,7 @@ function writeData(dom::DataOutputManager, ito)
 
     # Initialize file name if necessary. If file name is not initialized
     # directories may not be either so initialize directories if necessary.
-    if !dom.fnameInitialized
+    if dom.fnameInitialized == false
         # Check that directories exists and create it if not 
         if !isdir(dom.baseFolder)
             mkpath(dom.baseFolder)
@@ -49,14 +49,15 @@ function writeData(dom::DataOutputManager, ito)
                 cnt += 1
                 dom.fname = "results_#" * string(cnt)
                 if !isfile(joinpath(dom.baseFolder, "textData", dom.fname*".txt"))
+                    # Create new text file 
+                    touch(joinpath(dom.baseFolder, "textData", dom.fname*".txt"))
+ 
+                    # Set flags
                     safe = true
                     dom.fnameInitialized = true
-                end
+               end
             end
         end
-
-        # Create new text file 
-        touch(joinpath(dom.baseFolder, "textData", dom.fname*".txt"))
     end
 
     # Write data
@@ -134,21 +135,17 @@ function writeTextData(dom::DataOutputManager, ito)
         for i in 1:length(solVec)
             println(fid, "param: " * string(ϵs[i]) * " converged: " * (cflags[i] ? "Yes" : "No"))
             linestr = ""
-            if cflags[i]
-                for j in 1:length(solVec[i])
-                    linestr *= string(solVec[i][j]) * "\t" 
-                end
+            for j in 1:length(solVec[i])
+                linestr *= string(solVec[i][j]) * "\t" 
             end
             println(fid, linestr)
         end
     else
         println(fid, "converged " * (GetInitialGuessConverged(ito.solver) ? "Yes" : "No"))
         linestr = ""
-        if GetInitialGuessConverged(ito.solver)
-            sol = GetSolution(ito.solver)
-            for i in 1:length(sol)
-                linestr *= string(sol[i]) * "\t"
-            end
+        sol = GetSolution(ito.solver)
+        for i in 1:length(sol)
+            linestr *= string(sol[i]) * "\t"
         end
         println(fid, linestr)
     end

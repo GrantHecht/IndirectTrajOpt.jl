@@ -5,6 +5,7 @@ using IndirectShooting
 import IndirectCoStateInit: initialize!
 import IndirectShooting: solve!
 using JLD2
+using ProgressMeter
 
 # This stuff should be moved to a different package eventually
 using StaticArrays
@@ -18,6 +19,7 @@ using Octavian
 include("Utils/Spacecraft.jl")
 include("Utils/matVecMulUtils.jl")
 include("Utils/flagStructs.jl")
+include("Utils/readBinaryData.jl")
 
 # CR3BP 
 include("CR3BP/cr3bpEoms.jl")
@@ -38,6 +40,7 @@ include("IndirectTrajOptimizer.jl")
 #include("Utils/tempBackupIntegration.jl")
 
 # Exports 
+export readBinaryData
 export SingleOutput
 export initCR3BPIndirectParams
 export initCR3BPIndirectWithSTMParams
@@ -47,5 +50,6 @@ export IndirectOptimizationProblem
 export IndirectTrajOptimizer
 export initialize!
 export solve!
+export tSolve!
 
 end

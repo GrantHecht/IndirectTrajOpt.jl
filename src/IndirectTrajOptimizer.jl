@@ -77,13 +77,24 @@ function initialize!(ito::IndirectTrajOptimizer)
     return nothing
 end
 
-function solve!(ito::IndirectTrajOptimizer)
-    solve!(ito.solver)
+function solve!(ito::IndirectTrajOptimizer; factor = 3.0, ftol = 1e-8, showTrace = true, convergenceAttempts = 4)
+
+    # Solve 
+    solve!(ito.solver; factor = factor, ftol = ftol, showTrace = showTrace, convergenceAttempts = convergenceAttempts)
 
     # Write data if desired 
     if ito.writingData
         writeData(ito.dataOutputManager, ito)
     end
 
+    return nothing
+end
+
+function tSolve!(itoVec; factor = 3.0, ftol = 1e-8, showTrace = true, convergenceAttempts = 4)
+    p = Progress(length(itoVec), 1, "Solving BVPs: ")
+    Threads.@threads for i in 1:length(itoVec)
+        solve!(itoVec[i]; factor = factor, ftol = ftol, showTrace = showTrace, convergenceAttempts = convergenceAttempts)
+        next!(p)
+    end
     return nothing
 end
