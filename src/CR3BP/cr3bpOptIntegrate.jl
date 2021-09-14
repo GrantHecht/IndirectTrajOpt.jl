@@ -1,10 +1,11 @@
 
-function cr3bpOptIntegrate(y0, tspan, ps::AbstractCR3BPIndirectParams; 
+function integrate(y0, tspan, ps::AbstractCR3BPIndirectParams,
+    dynamicsFlag::CR3BP, integrationTypeFlag::Initialization; 
     copyParams = false, termCallbacks = false, inPlace = false)
 
    # Instantiate problem 
    prob = createCR3BPODEProb(y0, tspan, ps; 
-    copyParams = copyParams, termCallbacks = termCallbacks, inPlace = inPlace) 
+        copyParams = copyParams, termCallbacks = termCallbacks, inPlace = inPlace) 
 
     # Solve ode 
     sol = solve(
@@ -28,7 +29,8 @@ function cr3bpOptIntegrate(y0, tspan, ps::AbstractCR3BPIndirectParams;
     return sol[end], timeToFinalTime
 end
 
-function cr3bpOptIntegrate(y0, tspan, ps::AbstractCR3BPIndirectParams, flag::SingleOutput; 
+function integrate(y0, tspan, ps::AbstractCR3BPIndirectParams,
+    dynamicsFlag::CR3BP, integrationTypeFlag::Solving; 
     copyParams = false, termCallbacks = false, inPlace = false)
 
    # Instantiate problem 
@@ -51,7 +53,29 @@ function cr3bpOptIntegrate(y0, tspan, ps::AbstractCR3BPIndirectParams, flag::Sin
     return sol[end]
 end
 
-function cr3bpOptIntegrate(y0, tspan, ϵ, ps::AbstractCR3BPIndirectParams, flag::SingleOutput; 
+function integrate(y0, tspan, ps::AbstractCR3BPIndirectParams,
+    dynamicsFlag::CR3BP, integrationTypeFlag::FullSolutionHistory; 
+    copyParams = false, termCallbacks = false, inPlace = false)
+
+   # Instantiate problem 
+   prob = createCR3BPODEProb(y0, tspan, ps; copyParams = copyParams, 
+    termCallbacks = termCallbacks, inPlace = inPlace, save_positions = (true, true)) 
+
+    # Solve ode 
+    sol = solve(
+        prob,
+        Vern9(),
+        reltol = 1e-12,
+        abstol = 1e-12,
+        maxiters = 1e6
+        )
+
+    # Return final states and co-states
+    return sol
+end
+
+function integrateWithHomotopy(y0, tspan, ϵ, ps::AbstractCR3BPIndirectParams,
+    dynamicsFlag::CR3BP, integrationTypeFlag::Solving; 
     copyParams = false, termCallbacks = false, inPlace = false)
 
     # Instantiate problem 
@@ -74,7 +98,8 @@ function cr3bpOptIntegrate(y0, tspan, ϵ, ps::AbstractCR3BPIndirectParams, flag:
     return sol[end]
 end
 
-function cr3bpOptWithSTMIntegrate(z0, tspan, ps::CR3BPIndirectWithSTMParams; copyParams = false)
+function integrate(z0, tspan, ps::CR3BPIndirectWithSTMParams,
+    dynamicsFlag::CR3BP, integrationTypeFlag::SolvingWithSTM; copyParams = false)
 
    # Instantiate problem 
    prob = createCR3BPODEWithSTMProb(z0, tspan, ps; copyParams) 
@@ -95,7 +120,8 @@ function cr3bpOptWithSTMIntegrate(z0, tspan, ps::CR3BPIndirectWithSTMParams; cop
     return sol[end]
 end
 
-function cr3bpOptWithSTMIntegrate(z0, tspan, ϵ, ps::CR3BPIndirectWithSTMParams; copyParams = false)
+function integrateWithHomotopy(z0, tspan, ϵ, ps::CR3BPIndirectWithSTMParams,
+    dynamicsFlag::CR3BP, integrationTypeFlag::SolvingWithSTM; copyParams = false)
 
     # Instantiate problem 
     prob = createCR3BPODEWithSTMProb(z0, tspan, ps; copyParams = copyParams, ϵ = ϵ) 
@@ -114,4 +140,24 @@ function cr3bpOptWithSTMIntegrate(z0, tspan, ϵ, ps::CR3BPIndirectWithSTMParams;
 
     # Return final states and co-states
     return sol[end]
+end
+
+function integrate(x0, tspan, scenario::String, 
+    dynamicsFlag::CR3BP, integrationTypeFlag::FullSolutionHistoryNoControl; 
+    inPlace = false)
+
+   # Instantiate problem 
+   prob = createCR3BPODENoControlProb(x0, tspan, scenario; inPlace = inPlace)
+
+    # Solve ode 
+    sol = solve(
+        prob,
+        Vern9(),
+        reltol = 1e-12,
+        abstol = 1e-12,
+        maxiters = 1e6
+        )
+
+    # Return final states and co-states
+    return sol
 end

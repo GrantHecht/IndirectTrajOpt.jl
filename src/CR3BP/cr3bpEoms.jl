@@ -44,7 +44,7 @@ struct CR3BPParams
 end
 
 # CR3BP Eq. of Motion w/o control
-function cr3bpEomNoControl(u::AbstractArray,p::CR3BPParams,t)
+function cr3bpEomNoControl(u::AbstractArray, p::CR3BPParams, t)
     # Precompute required
     xpμ = u[1] + p.μ
     r1  = sqrt(xpμ^2 + u[2]^2 + u[3]^2)

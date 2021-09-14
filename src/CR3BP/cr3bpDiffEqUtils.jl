@@ -3,7 +3,7 @@
 # and termination if fuel is depleated for impact with body. A copy of parameters is 
 # created if copyParams = true, which is required if numerically integrating in parallel
 function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR3BPIndirectParams; 
-    copyParams = false, termCallbacks = false, inPlace = false, ϵ = -1.0)
+    copyParams = false, termCallbacks = false, inPlace = false, ϵ = -1.0, save_positions = (false, false))
 
     # Copy parameters if desired
     if copyParams 
@@ -40,7 +40,7 @@ function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR
             interp_points = 10,
             abstol = 1e-14,
             reltol = 0.0,
-            save_positions = (false, false))
+            save_positions = save_positions)
     else
         cb = ContinuousCallback(
             cr3bpEomsConditionNoTerm,
@@ -51,7 +51,7 @@ function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR
             interp_points = 10,
             abstol = 1e-14,
             reltol = 0.0,
-            save_positions = (false, false))
+            save_positions = save_positions)
     end
 
     # ODE Problem
@@ -117,3 +117,27 @@ function createCR3BPODEWithSTMProb(z0::AbstractVector, tspan::Tuple, scenario::S
     return createCR3BPODEWithSTMProb(z0, tspan, ps)
 end
 
+function createCR3BPODENoControlProb(x0::AbstractVector, tspan::Tuple, params::CR3BPParams; 
+    copyParams = false, inPlace = false)
+
+    # Copy parameters if desired
+    if copyParams 
+        ps = deepcopy(params)
+    else
+        ps = params 
+    end
+
+   # ODE Problem
+    if inPlace
+        ff = ODEFunction{true}(cr3bpEomNoControl!)
+    else
+        ff = ODEFunction{false}(cr3bpEomNoControl)
+    end
+
+    return ODEProblem(ff, x0, tspan, ps)
+end
+
+function createCR3BPODENoControlProb(x0::AbstractVector, tspan::Tuple, scenario::String; inPlace = false)
+    psFull = initCR3BPIndirectParams(scenario)
+    return createCR3BPODENoControlProb(x0, tspan, psFull.crp; copyParams = false, inPlace = inPlace)
+end

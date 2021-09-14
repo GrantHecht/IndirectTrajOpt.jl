@@ -42,13 +42,16 @@ function IndirectOptimizationProblem(scenario::String, iConds::AbstractVector, f
         tspanScalled = (tspan[1]*daysToTU, tspan[2]*daysToTU)
 
         # Initialize functions
-        initBVPFunc(y0) = cr3bpOptIntegrate(y0, tspanScalled, ps; copyParams = true, termCallbacks = true)
+        initBVPFunc(y0) = integrate(y0, tspanScalled, ps, CR3BP(), Initialization(); 
+                                    copyParams = true, termCallbacks = true)
         if homotopy == true
-            BVPFunc(y0, ϵ)        = cr3bpOptIntegrate(y0, tspanScalled, ϵ, ps, SingleOutput(); copyParams = true)
-            BVPWithSTMFunc(z0, ϵ) = cr3bpOptWithSTMIntegrate(z0, tspanScalled, ϵ, psSTM; copyParams = true)
+            BVPFunc(y0, ϵ)        = integrateWithHomotopy(y0, tspanScalled, ϵ, ps, CR3BP(), Solving(); 
+                                                          copyParams = true)
+            BVPWithSTMFunc(z0, ϵ) = integrateWithHomotopy(z0, tspanScalled, ϵ, psSTM, CR3BP(), SolvingWithSTM(); 
+                                                          copyParams = true)
         else
-            BVPFunc(y0)         = cr3bpOptIntegrate(y0, tspanScalled, ps, SingleOutput(); copyParams = true)
-            BVPWithSTMFunc(z0)  = cr3bpOptWithSTMIntegrate(z0, tspanScalled, psSTM; copyParams = true)
+            BVPFunc(y0)         = integrate(y0, tspanScalled, ps, CR3BP(), Solving(); copyParams = true)
+            BVPWithSTMFunc(z0)  = integrate(z0, tspanScalled, psSTM, CR3BP(), SolvingWithSTM(); copyParams = true)
         end
     else
         throw(ArgumentError("Only CR3BP scenarios are implemented now."))
