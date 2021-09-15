@@ -15,19 +15,23 @@ function readBinaryData(folder::String)
     local dataVec
     @showprogress "Reading Binary Data Files: " for i in 1:length(files)
         # Open file
-        f = jldopen(joinpath(folder, "binaryData", files[i]), "r")
+        #f = jldopen(joinpath(folder, "binaryData", files[i]), "r")
+        data = get(BSON.load(joinpath(folder, "binaryData", files[i]), @__MODULE__), :data, nothing)
+        if data === nothing
+            throw(ErrorException("Binary file was not read succesfully."))
+        end
 
         # Grab data and push to vector
         @suppress begin
             if i == 1
-                dataVec = Vector{AbstractIndirectOptimizationProblem}([f["data"]])
+                dataVec = Vector{AbstractIndirectOptimizationProblem}([data])
             else
-                push!(dataVec, f["data"])
+                push!(dataVec, data)
             end
         end
 
         # Close file
-        close(f)
+        #close(f)
     end
 
     return dataVec

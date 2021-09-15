@@ -4,6 +4,7 @@ authors = ["Grant Hecht"]
 version = "0.1.1"
 
 [deps]
+BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
