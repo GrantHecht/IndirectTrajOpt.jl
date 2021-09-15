@@ -6,7 +6,7 @@
 #           data files.
 #
 
-function readBinaryData(folder::String, scenario::String, tspan::Tuple; homotopy = true)
+function readBinaryData(folder::String)
 
     # Get all files in folder
     files = readdir(joinpath(folder, "binaryData"))
@@ -15,17 +15,21 @@ function readBinaryData(folder::String, scenario::String, tspan::Tuple; homotopy
     local dataVec
     @showprogress "Reading Binary Data Files: " for i in 1:length(files)
         # Open file
-        f = jldopen(joinpath(folder, "binaryData", files[i]), "r")
+        #f = jldopen(joinpath(folder, "binaryData", files[i]), "r")
+        data = get(BSON.load(joinpath(folder, "binaryData", files[i]), @__MODULE__), :data, nothing)
+        if data === nothing
+            throw(ErrorException("Binary file was not read succesfully."))
+        end
 
         # Grab data and push to vector
         if i == 1
-            dataVec = [f["data"]]
+            dataVec = [data]
         else
-            push!(dataVec, f["data"])
+            push!(dataVec, data)
         end
 
         # Close file
-        close(f)
+        #close(f)
     end
 
     return dataVec
