@@ -6,7 +6,7 @@
 #           data files.
 #
 
-function readBinaryData(folder::String, scenario::String, tspan::Tuple; homotopy = true)
+function readBinaryData(folder::String)
 
     # Get all files in folder
     files = readdir(joinpath(folder, "binaryData"))
