@@ -6,7 +6,8 @@
 #           data files.
 #
 
-function readBinaryData(folder::String)
+function readBinaryData(folder::String, scenario::String, tspan::Tuple; homotopy = true)
+
     # Get all files in folder
     files = readdir(joinpath(folder, "binaryData"))
 
@@ -29,6 +30,7 @@ function readBinaryData(folder::String)
 
     return dataVec
 end
+
 
 function readTextData(folder::String)
     # Get all files in folder 
@@ -253,4 +255,39 @@ function getTextFileVersion(files)
     end
 
     return ver
+end
+
+# This method should used if encontering issues loading binary data.
+# Is not able to reconstruct heuristic optimizer full solution
+# but can at least grab initialized co-states.
+#
+# Assumes data folder contains solutions which use all similar settings
+function resurrectBinaryData(folder::String, scenario::String, iConds::AbstractVector, fConds::AbstractVector,
+    tspan::Tuple; homotopy = true)
+
+    # Read in text data
+    df = readTextData(folder)
+
+    # Reconstruct indirect optimization problem
+    iop = IndirectOptimizationProblem(scenario, iConds, fConds, tspan; homotopy = homotopy)
+
+    # Reconstruct Indirect Trajectory Optimizers
+    @warn "MS_PSO number of particles and number of swarms are hard coded as 500 and 8 respectively."
+    dataVec = [IndirectTrajOptimizer(iop,
+        solutionMethod = df.SolutionMethod[i],
+        initCostFunc = df.InitializationCost[i],
+        initOptimizer = df.HeuristicOptimizer[i],
+        numParticles = (df.HeuristicOptimizer[i] == :PSO ? df.NumberOfParticles[i] : 500),
+        numSwarms = (df.HeuristicOptimizer[i] == :PSO ? 0 : 8),
+        weights = df.CostFunctionWeights[i],
+        homotopyParamVec = df.HomotopyParams[i],
+        dataFolder = folder * "_resurrected",
+        writeData = true) for i in 1:nrow(df)]
+
+    # Set initialized costates
+    for i in 1:length(dataVec)
+        initializeData!(dataVec[i].solver, df.InitializedCoStates[i])
+    end
+    
+    return dataVec
 end

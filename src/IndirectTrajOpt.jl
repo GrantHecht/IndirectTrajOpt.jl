@@ -41,6 +41,7 @@ include("IndirectTrajOptimizer.jl")
 # Utility functions
 export readBinaryData
 export readTextData
+export resurrectBinaryData
 
 # Integration Flags
 export CR3BP
