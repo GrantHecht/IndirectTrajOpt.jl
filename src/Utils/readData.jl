@@ -18,10 +18,12 @@ function readBinaryData(folder::String)
         f = jldopen(joinpath(folder, "binaryData", files[i]), "r")
 
         # Grab data and push to vector
-        if i == 1
-            dataVec = [f["data"]]
-        else
-            push!(dataVec, f["data"])
+        @suppress begin
+            if i == 1
+                dataVec = Vector{AbstractIndirectOptimizationProblem}([f["data"]])
+            else
+                push!(dataVec, f["data"])
+            end
         end
 
         # Close file

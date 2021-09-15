@@ -9,6 +9,7 @@ import IndirectShooting: solve!
 using JLD2
 using DataFrames
 using ProgressMeter
+using Suppressor
 
 # This stuff should be moved to a different package eventually
 using StaticArrays

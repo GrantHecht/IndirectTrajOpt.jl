@@ -1,5 +1,6 @@
+abstract type AbstractIndirectTrajOptimizer end
 
-struct IndirectTrajOptimizer{IPT,CSIT,ST}
+struct IndirectTrajOptimizer{IPT,CSIT,ST} <: AbstractIndirectOptimizationProblem
     # Indirect Trajectory Optimization problem 
     prob::IPT
 
