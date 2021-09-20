@@ -28,8 +28,8 @@ struct IndirectOptimizationProblem{IBVPF, BVPF, BVPSTMF} <: AbstractIndirectOpti
 end
 
 # TSPAN in units of days!!! Scaled for respective problems!
-function IndirectOptimizationProblem(scenario::String, iConds::AbstractVector, fConds::AbstractVector, 
-                                     tspan::Tuple; homotopy = true)
+function IndirectOptimizationProblem(scenario::String, iConds::AbstractVector, fConds::AbstractVector, tspan::Tuple; 
+    homotopy = true, homotopyFlag::HomotopyFlag = MEMF(), initializationFlag::InitializationFlag = Initialization())
 
     # Check for scenario type
     if occursin("CR3BP", scenario)
@@ -42,16 +42,16 @@ function IndirectOptimizationProblem(scenario::String, iConds::AbstractVector, f
         tspanScalled = (tspan[1]*daysToTU, tspan[2]*daysToTU)
 
         # Initialize functions
-        initBVPFunc(y0) = integrate(y0, tspanScalled, ps, CR3BP(), Initialization(); 
+        initBVPFunc(y0) = integrate(y0, tspanScalled, ps, CR3BP(), initializationFlag, homotopyFlag; 
                                     copyParams = true, termCallbacks = true)
         if homotopy == true
-            BVPFunc(y0, ϵ)        = integrateWithHomotopy(y0, tspanScalled, ϵ, ps, CR3BP(), Solving(); 
+            BVPFunc(y0, ϵ)        = integrateWithHomotopy(y0, tspanScalled, ϵ, ps, CR3BP(), Solving(), homotopyFlag; 
                                                           copyParams = true)
-            BVPWithSTMFunc(z0, ϵ) = integrateWithHomotopy(z0, tspanScalled, ϵ, psSTM, CR3BP(), SolvingWithSTM(); 
-                                                          copyParams = true)
+            BVPWithSTMFunc(z0, ϵ) = integrateWithHomotopy(z0, tspanScalled, ϵ, psSTM, CR3BP(), SolvingWithSTM(),
+                                                          homotopyFlag; copyParams = true)
         else
-            BVPFunc(y0)         = integrate(y0, tspanScalled, ps, CR3BP(), Solving(); copyParams = true)
-            BVPWithSTMFunc(z0)  = integrate(z0, tspanScalled, psSTM, CR3BP(), SolvingWithSTM(); copyParams = true)
+            BVPFunc(y0)         = integrate(y0, tspanScalled, ps, CR3BP(), Solving(), homotopyFlag; copyParams = true)
+            BVPWithSTMFunc(z0)  = integrate(z0, tspanScalled, psSTM, CR3BP(), SolvingWithSTM(), homotopyFlag; copyParams = true)
         end
     else
         throw(ArgumentError("Only CR3BP scenarios are implemented now."))
