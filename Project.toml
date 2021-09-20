@@ -21,6 +21,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 [compat]
 BenchmarkTools = "1"
 ForwardDiff = "0.10"
+JLD2 = "0.4"
 LoopVectorization = "0.12"
 Octavian = "0.3"
 StaticArrays = "1"
