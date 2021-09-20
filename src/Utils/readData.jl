@@ -5,8 +5,16 @@
 # folder:   String containing the full file path to folder containing binary
 #           data files.
 #
-
 function readBinaryData(folder::String)
+    dataVec = try
+        readBinaryDataConcrete(folder) 
+    catch
+        readBinaryDataAbstract(folder)
+    end
+    return dataVec
+end
+
+function readBinaryDataAbstract(folder::String)
 
     # Get all files in folder
     files = readdir(joinpath(folder, "binaryData"))
@@ -15,22 +23,52 @@ function readBinaryData(folder::String)
     local dataVec
     @showprogress "Reading Binary Data Files: " for i in 1:length(files)
         # Open file
-        f = jldopen(joinpath(folder, "binaryData", files[i]), "r")
-
-        # Grab data and push to vector
-        if i == 1
-            dataVec = [f["data"]]
-        else
-            push!(dataVec, f["data"])
+        #f = jldopen(joinpath(folder, "binaryData", files[i]), "r")
+        data = get(BSON.load(joinpath(folder, "binaryData", files[i]), @__MODULE__), :data, nothing)
+        if data === nothing
+            throw(ErrorException("Binary file was not read succesfully."))
         end
 
-        # Close file
-        close(f)
+        # Grab data and push to vector
+        @suppress begin
+            if i == 1
+                dataVec = Vector{AbstractIndirectOptimizationProblem}([data])
+            else
+                push!(dataVec, data)
+            end
+        end
     end
 
     return dataVec
 end
 
+function readBinaryDataConcrete(folder::String)
+
+    # Get all files in folder
+    files = readdir(joinpath(folder, "binaryData"))
+
+    # Read all files in push data to data vector
+    local dataVec
+    @showprogress "Reading Binary Data Files: " for i in 1:length(files)
+        # Open file
+        #f = jldopen(joinpath(folder, "binaryData", files[i]), "r")
+        data = get(BSON.load(joinpath(folder, "binaryData", files[i]), @__MODULE__), :data, nothing)
+        if data === nothing
+            throw(ErrorException("Binary file was not read succesfully."))
+        end
+
+        # Grab data and push to vector
+        @suppress begin
+            if i == 1
+                dataVec = Vector{AbstractIndirectOptimizationProblem}([data])
+            else
+                push!(dataVec, data)
+            end
+        end
+    end
+
+    return dataVec
+end
 
 function readTextData(folder::String)
     # Get all files in folder 

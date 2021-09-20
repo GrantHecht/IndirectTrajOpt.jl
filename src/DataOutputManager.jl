@@ -68,7 +68,8 @@ function writeData(dom::DataOutputManager, ito)
 end
 
 function writeBinaryData(dom::DataOutputManager, ito)
-    jldsave(joinpath(dom.baseFolder, "binaryData", dom.fname*".jld2"), data = ito)
+    #jldsave(joinpath(dom.baseFolder, "binaryData", dom.fname*".jld2"), data = ito)
+    bson(joinpath(dom.baseFolder, "binaryData", dom.fname*".bson"), Dict(:data=>ito))
     return nothing
 end
 

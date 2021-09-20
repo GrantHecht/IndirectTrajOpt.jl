@@ -196,6 +196,85 @@ function cr3bpEomIndirect!(du::AbstractVector, u::AbstractVector,
     return GVec
 end
 
+function cr3bpEomIndirectEnergyIntegral(u::AbstractVector, p::AbstractCR3BPIndirectParams, t)
+    @inbounds begin
+
+    # Get requirements 
+    TU  = p.crp.TU
+    LU  = p.crp.LU
+    VU  = p.crp.VU 
+    MU  = p.crp.MU 
+    isp = p.sp.isp 
+    c   = p.sp.c
+
+    # Scale requirements
+    tMaxSc = p.sp.tMax * TU * TU / (MU*LU*1000.0)
+    cSc = c*TU / (LU*1000.0)
+
+    # Compute thrust direction
+    λv = sqrt(u[11]*u[11] + u[12]*u[12] + u[13]*u[13])
+    invλv = 1.0 / λv 
+    α = @SVector [-u[11]*invλv, -u[12]*invλv, -u[13]*invλv]
+
+    # Compute throttline 
+    S = computeS(u, λv, cSc)
+    γ = computeU(S, p.utype, p.ϵ)
+
+    # Compute Thrust Acceleration
+    atMag = γ*tMaxSc / u[7]
+    at = @SVector [α[1]*atMag,
+                   α[2]*atMag,
+                   α[3]*atMag]
+
+    # Derivatives
+    dx      = cr3bpEomControl(u,p.crp,t,at)
+    dλ      = cr3bpCostateEom(u,p, γ)
+    usqr    = γ^2
+    du = @SVector [dx[1], dx[2], dx[3], dx[4], dx[5], dx[6], -γ*tMaxSc / cSc,
+                   dλ[1], dλ[2], dλ[3], dλ[4], dλ[5], dλ[6], dλ[7], usqr]
+
+    return du
+    end
+end
+
+function cr3bpEomIndirectEnergyIntegral!(du::AbstractArray, u::AbstractArray, p::AbstractCR3BPIndirectParams, t)
+    @inbounds begin
+    # Get requirements 
+    TU  = p.crp.TU
+    LU  = p.crp.LU
+    VU  = p.crp.VU 
+    MU  = p.crp.MU 
+    isp = p.sp.isp 
+    c   = p.sp.c
+
+    # Scale requirements
+    tMaxSc = p.sp.tMax * TU^2 / (MU*LU*1000.0)
+    cSc = c*TU / (LU*1000.0)
+
+    # Compute thrust direction
+    λv = sqrt(u[11]^2 + u[12]^2 + u[13]^2)
+    invλv = 1.0 / λv 
+    α = @SVector [-u[11]*invλv, -u[12]*invλv, -u[13]*invλv]
+
+    # Compute throttline 
+    S = computeS(u, λv, cSc)
+    γ = computeU(S, p.utype, p.ϵ)
+
+    # Compute Thrust Acceleration
+    atMag = γ*tMaxSc / u[7]
+    at = @SVector [α[1]*atMag,
+                   α[2]*atMag,
+                   α[3]*atMag]
+
+    # Compute dynamics
+    cr3bpEomControl!(view(du,1:6), u, p.crp, t, at)
+    du[7]   = -γ*tMaxSc / cSc
+    GVec    = cr3bpCostateEom!(view(du,8:14), u, p, γ)
+    du[15]  = γ^2
+    end
+    return GVec
+end
+
 # Utility Functions 
 function computeS(x::AbstractVector, λv, cSc)
     @inbounds begin

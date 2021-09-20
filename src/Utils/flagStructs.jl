@@ -2,6 +2,10 @@
 # Dynamics model flags
 struct CR3BP end
 
+# Homotopy flags
+struct MEMF end     # Min. Energy -> Min. Fuel 
+struct HypTanMF end # Hyperbolic Tangent Minimum Fuel 
+
 # Desired integration and returned solution
 # Flag indicating integration to be performed for initialization cost function
 #
