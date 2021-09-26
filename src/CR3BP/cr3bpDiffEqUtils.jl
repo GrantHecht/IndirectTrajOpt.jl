@@ -38,7 +38,7 @@ function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR
             cr3bpEomsAffect!, 4;
             idxs = nothing,
             rootfind = true,
-            interp_points = 10,
+            interp_points = 20,
             abstol = 1e-14,
             reltol = 0.0,
             save_positions = save_positions)
@@ -49,7 +49,7 @@ function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR
             cr3bpEomsAffectNoTerm!;
             idxs = nothing,
             rootfind = true,
-            interp_points = 10,
+            interp_points = 20,
             abstol = 1e-14,
             reltol = 0.0,
             save_positions = save_positions)
@@ -104,7 +104,7 @@ function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR
             cr3bpEomsAffect!, 4;
             idxs = nothing,
             rootfind = true,
-            interp_points = 10,
+            interp_points = 20,
             abstol = 1e-14,
             reltol = 0.0,
             save_positions = save_positions)
@@ -115,7 +115,7 @@ function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR
             cr3bpEomsAffectNoTerm!;
             idxs = nothing,
             rootfind = true,
-            interp_points = 10,
+            interp_points = 20,
             abstol = 1e-14,
             reltol = 0.0,
             save_positions = save_positions)

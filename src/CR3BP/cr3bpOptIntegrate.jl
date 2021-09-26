@@ -1,6 +1,6 @@
 
 function integrate(y0, tspan, ps::AbstractCR3BPIndirectParams, dynamicsFlag::CR3BP, 
-    integrationTypeFlag::Initialization, homotopyFlag::HomotopyFlag; 
+    integrationTypeFlag::InitializationFlag, homotopyFlag::HomotopyFlag; 
     copyParams = false, termCallbacks = false, inPlace = false)
 
    # Instantiate problem 
@@ -11,8 +11,8 @@ function integrate(y0, tspan, ps::AbstractCR3BPIndirectParams, dynamicsFlag::CR3
     sol = solve(
         prob,
         Vern9(),
-        reltol = 1e-12,
-        abstol = 1e-12,
+        reltol = 1e-14,
+        abstol = 1e-14,
         save_everystep = false,
         save_start = false,
         initialize_save = false,
@@ -41,8 +41,8 @@ function integrate(y0, tspan, ps::AbstractCR3BPIndirectParams, dynamicsFlag::CR3
     sol = solve(
         prob,
         Vern9(),
-        reltol = 1e-12,
-        abstol = 1e-12,
+        reltol = 1e-14,
+        abstol = 1e-14,
         save_everystep = false,
         save_start = false,
         initialize_save = false,
@@ -66,8 +66,8 @@ function integrate(y0, tspan, ps::AbstractCR3BPIndirectParams, dynamicsFlag::CR3
     sol = solve(
         prob,
         Vern9(),
-        reltol = 1e-12,
-        abstol = 1e-12,
+        reltol = 1e-14,
+        abstol = 1e-14,
         maxiters = 1e6
         )
 
@@ -80,15 +80,15 @@ function integrateWithHomotopy(y0, tspan, ϵ, ps::AbstractCR3BPIndirectParams, d
     copyParams = false, termCallbacks = false, inPlace = false)
 
     # Instantiate problem 
-    prob = createCR3BPODEProb(y0, tspan, integrationTypeFlag, homotopyFlag, ps; copyParams = copyParams, 
+    prob = createCR3BPODEProb(y0, tspan, ps, integrationTypeFlag, homotopyFlag; copyParams = copyParams, 
         termCallbacks = termCallbacks, inPlace = inPlace, ϵ = ϵ) 
 
     # Solve ode 
     sol = solve(
         prob,
         Vern9(),
-        reltol = 1e-12,
-        abstol = 1e-12,
+        reltol = 1e-14,
+        abstol = 1e-14,
         save_everystep = false,
         save_start = false,
         initialize_save = false,
@@ -110,8 +110,8 @@ function integrate(z0, tspan, ps::CR3BPIndirectWithSTMParams, dynamicsFlag::CR3B
     sol = solve(
         prob,
         Vern9(),
-        reltol = 1e-12,
-        abstol = 1e-12,
+        reltol = 1e-14,
+        abstol = 1e-14,
         save_everystep = false,
         save_start = false,
         initialize_save = false,
@@ -132,8 +132,8 @@ function integrateWithHomotopy(z0, tspan, ϵ, ps::CR3BPIndirectWithSTMParams, dy
     sol = solve(
         prob,
         Vern9(),
-        reltol = 1e-12,
-        abstol = 1e-12,
+        reltol = 1e-14,
+        abstol = 1e-14,
         save_everystep = false,
         save_start = false,
         initialize_save = false,
@@ -154,8 +154,8 @@ function integrate(x0, tspan, scenario::String, dynamicsFlag::CR3BP,
     sol = solve(
         prob,
         Vern9(),
-        reltol = 1e-12,
-        abstol = 1e-12,
+        reltol = 1e-14,
+        abstol = 1e-14,
         maxiters = 1e6
         )
 

@@ -214,13 +214,13 @@ function propSTM!(u::AbstractVector, ps::CR3BPIndirectWithSTMParams)
         λv = sqrt(u[11]^2 + u[12]^2 + u[13]^2)
 
         # Get state/co-state derivatives before updating utype
-        dy⁻ = cr3bpEomIndirect(view(u, 1:14), ps, 0.0)
+        dy⁻ = cr3bpEomIndirect(view(u, 1:14), ps, 0.0, MEMF())
 
         # Update utype 
         ps.utype == 0 ? ps.utype = 2 : ps.utype = 0
 
         # Get state/co-state derivatives after updating utype
-        dy⁺ = cr3bpEomIndirect(view(u, 1:14), ps, 0.0)
+        dy⁺ = cr3bpEomIndirect(view(u, 1:14), ps, 0.0, MEMF())
 
         # Compute dy difference
         dyDiff = @SVector [dy⁺[1]  - dy⁻[1],

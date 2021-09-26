@@ -100,7 +100,17 @@ function readTextDataV0_1(files)
         HomotopyConverged = Bool[], InitializedCoStates = Vector{Vector{Float64}}(undef, 0),
         HomotopySolutions = Vector{Vector{Vector{Float64}}}(undef, 0),
         HomotopyParams = Vector{Vector{Float64}}(undef, 0), 
-        HomotopyStepConverged = Vector{Vector{Bool}}(undef, 0))
+        HomotopyStepConverged = Vector{Vector{Bool}}(undef, 0),
+        InitializationUBs = Vector{Vector{Float64}}(undef, 0),
+        InitializationLBs = Vector{Vector{Float64}}(undef, 0),
+        InitializationiUBs = Vector{Vector{Float64}}(undef, 0),
+        InitializationiLBs = Vector{Vector{Float64}}(undef, 0),
+        MinNeighborhoodFraction = Vector{Float64}(undef, 0),
+        InitializationFuncTol = Vector{Float64}(undef, 0),
+        InitializationMaxIters = Vector{Int}(undef, 0),
+        InitializationMaxStallIters = Vector{Int}(undef, 0),
+        InitializationMaxTime = Vector{Float64}(undef, 0),
+        InitializationMaxStallTime = Vector{Float64}(undef, 0))
 
     @showprogress "Reading Text Data Files: " for i in 1:length(files)
         # Open file
@@ -123,6 +133,16 @@ function readTextDataV0_1(files)
         hSols       = Vector{Vector{Float64}}(undef, 0)
         hParams     = Vector{Float64}(undef, 0)
         hStepConv   = Vector{Bool}(undef, 0)
+        ubs         = Vector{Float64}(undef, 0)
+        lbs         = Vector{Float64}(undef, 0)
+        iubs        = Vector{Float64}(undef, 0)
+        ilbs        = Vector{Float64}(undef, 0)
+        mnf         = -1.0
+        funcTol     = 0.0
+        maxIters    = 0
+        maxSIters   = 0
+        maxTime     = 0.0
+        maxSTime    = 0.0
 
         # File location flags and line counter
         inMetaData      = false
@@ -158,6 +178,72 @@ function readTextDataV0_1(files)
                     # Fill vector
                     resize!(cFW, length(strVec))
                     cFW .= map(s->parse(Float64, s), strVec)
+                elseif occursin("Initialization UBs:", line)
+                    # Process string
+                    str = split(line, "\t"; keepempty = false)[2]
+                    str = replace(str, "[" => "")
+                    str = replace(str, "]" => "")
+                    str = replace(str, " " => "")[1:end-1]
+                    strVec = split(str, ","; keepempty = false)
+
+                    # Fill vector
+                    resize!(ubs, length(strVec))
+                    ubs .= map(s->parse(Float64, s), strVec)
+                elseif occursin("Initialization LBs:", line)
+                    # Process string
+                    str = split(line, "\t"; keepempty = false)[2]
+                    str = replace(str, "[" => "")
+                    str = replace(str, "]" => "")
+                    str = replace(str, " " => "")[1:end-1]
+                    strVec = split(str, ","; keepempty = false)
+
+                    # Fill vector
+                    resize!(lbs, length(strVec))
+                    lbs .= map(s->parse(Float64, s), strVec)
+                elseif occursin("Initialization iUBs:", line)
+                    # Process string
+                    str = split(line, "\t"; keepempty = false)[2]
+                    str = replace(str, "[" => "")
+                    str = replace(str, "]" => "")
+                    str = replace(str, " " => "")[1:end-1]
+                    strVec = split(str, ","; keepempty = false)
+
+                    # Fill vector
+                    resize!(iubs, length(strVec))
+                    iubs .= map(s->parse(Float64, s), strVec)
+                elseif occursin("Initialization iLBs:", line)
+                    # Process string
+                    str = split(line, "\t"; keepempty = false)[2]
+                    str = replace(str, "[" => "")
+                    str = replace(str, "]" => "")
+                    str = replace(str, " " => "")[1:end-1]
+                    strVec = split(str, ","; keepempty = false)
+
+                    # Fill vector
+                    resize!(ilbs, length(strVec))
+                    ilbs .= map(s->parse(Float64, s), strVec)
+                elseif occursin("Min. Neighborhood Frac:", line)
+                    # Process string 
+                    str = split(line, "\t"; keepempty = false)[2]
+                    mnf = parse(Float64, str)
+                elseif occursin("Initialization Func. Tol.:", line)
+                    # Process string 
+                    str = split(line, "\t"; keepempty = false)[2]
+                    funcTol = parse(Float64, str) 
+                elseif occursin("Initialization Max Iterations:", line)
+                    str = split(line, "\t"; keepempty = false)[2]
+                    maxIters = parse(Int, str)
+                elseif occursin("Initialization Max Stall Iterations:", line)
+                    str = split(line, "\t"; keepempty = false)[2]
+                    maxSIters = Int(parse(Float64, str))
+                elseif occursin("Initialization Max Time:", line)
+                    str = split(line, "\t"; keepempty = false)[2]
+                    str = replace(str, " sec" => "")
+                    maxTime = parse(Float64, str)
+                elseif occursin("Initialization Max Stall Time:", line)
+                    str = split(line, "\t"; keepempty = false)[2]
+                    str = replace(str, " sec" => "")
+                    maxSTime = parse(Float64, str)
                 end
             elseif inConvData
                 if occursin("Time To Initialize:", line)
@@ -243,7 +329,17 @@ function readTextDataV0_1(files)
             "InitializedCoStates"           => initCS,
             "HomotopySolutions"             => hSols,
             "HomotopyParams"                => hParams,
-            "HomotopyStepConverged"         => hStepConv
+            "HomotopyStepConverged"         => hStepConv,
+            "InitializationUBs"             => ubs,
+            "InitializationLBs"             => lbs,
+            "InitializationiUBs"            => iubs,
+            "InitializationiLBs"            => ilbs,
+            "MinNeighborhoodFraction"       => mnf,
+            "InitializationFuncTol"         => funcTol,
+            "InitializationMaxIters"        => maxIters,
+            "InitializationMaxStallIters"   => maxSIters,
+            "InitializationMaxTime"         => maxTime,
+            "InitializationMaxStallTime"    => maxSTime
         ))
 
         # Close files

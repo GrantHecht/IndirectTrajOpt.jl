@@ -47,7 +47,10 @@ export resurrectBinaryData
 
 # Integration Flags
 export CR3BP
+export MEMF
+export HypTenMF
 export Initialization
+export InitializationWithIntegralCost
 export Solving
 export SolvingWithSTM
 export FullSolutionHistory
