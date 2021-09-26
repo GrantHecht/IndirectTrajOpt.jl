@@ -82,14 +82,6 @@ function writeTextData(dom::DataOutputManager, ito)
     println(fid, "File Format Version:\t" * dom.textFormatVersion)
     println(fid, "Solution Method:\t\t" * string(ito.solMethod))
     println(fid, "Initialization Cost:\t" * string(ito.initCost))
-    if ito.initCost == :WSS || ito.initCost == :WSSWM
-        lineStr = "Cost Funciton Weights:\t["
-        for i in 1:length(ito.weights)
-            lineStr *= string(ito.weights[i]) * ", "
-        end
-        lineStr *= "]"
-        println(fid, lineStr)
-    end
     println(fid, "Heuristic Optimizer:\t" * string(ito.initOptimizer))
     if ito.initOptimizer == :PSO
         numParticles = length(ito.csInit.ho.swarm)
@@ -99,8 +91,71 @@ function writeTextData(dom::DataOutputManager, ito)
         numSwarms    = length(ito.csInit.ho.swarmVec)
         println(fid, "Number of Particles:\t" * string(numParticles))
         println(fid, "Number of Swarms:\t\t" * string(numSwarms))
-    end
+    end                                                           
     println(fid, "Using Homotopy:\t\t\t" * (ito.prob.homotopy ? "Yes" : "No"))
+    println(fid, "Min. Neighborhood Frac:\t" * string(ito.minNeighborhoodFrac))
+    if ito.initCost == :WSS || ito.initCost == :WSSWM
+        lineStr = "Cost Funciton Weights:\t["
+        for i in 1:length(ito.weights)
+            if i == length(ito.weights)
+                lineStr *= string(ito.weights[i])
+            else
+                lineStr *= string(ito.weights[i]) * ", "
+            end
+        end
+        lineStr *= "]"
+        println(fid, lineStr)
+    end
+    lineStr = "Initialization UBs:\t\t["
+    for i in 1:length(ito.UBs)
+        if i == length(ito.UBs)
+            lineStr *= string(ito.UBs[i])
+        else
+            lineStr *= string(ito.UBs[i]) * ", "
+        end
+    end
+    lineStr *= "]"
+    println(fid, lineStr)
+    lineStr = "Initialization LBs:\t\t["
+    for i in 1:length(ito.LBs)
+        if i == length(ito.LBs)
+            lineStr *= string(ito.LBs[i])
+        else
+            lineStr *= string(ito.LBs[i]) * ", "
+        end
+    end
+    println(fid, lineStr)
+    if length(ito.iUBs) != 0
+        lineStr = "Initialization iUBs:\t["
+        for i in 1:length(ito.iUBs)
+            if i == length(ito.iUBs)
+                lineStr *= string(ito.iUBs[i])
+            else
+                lineStr *= string(ito.iUBs[i]) * ", "
+            end
+        end
+        lineStr *= "]"
+        println(fid, lineStr)
+    end
+    if length(ito.iLBs) != 0
+        lineStr = "Initialization iLBs:\t["
+        for i in 1:length(ito.iLBs)
+            if i == length(ito.iLBs)
+                lineStr *= string(ito.iLBs[i])
+            else
+                lineStr *= string(ito.iLBs[i]) * ", "
+            end
+        end
+        lineStr *= "]"
+        println(fid, lineStr)
+    end
+    println(fid, "Initialization Func. Tol.:\t\t\t\t"*string(ito.funcTol))
+    println(fid, "Initialization Max Iterations:\t\t\t"*string(ito.maxIters))
+    println(fid, "Initialization Max Stall Iterations:\t"*string(ito.maxStallIters))
+    println(fid, "Initialization Max Time:\t\t\t\t"*string(ito.maxTime)*" sec")
+    println(fid, "Initialization Max Stall Time:\t\t\t"*string(ito.maxStallTime)*" sec")
+    println(fid, "Used Parallel:\t\t\t\t\t\t\t" * (ito.useParallel ? "Yes" : "No"))
+
     println(fid, "# END META DATA"); println(fid, "")
 
     # Write convergence data

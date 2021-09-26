@@ -22,14 +22,15 @@ mutable struct CR3BPIndirectWithSTMParams <: AbstractCR3BPIndirectParams
 end
 
 function cr3bpEomIndirectWithSTM!(du::AbstractVector, u::AbstractVector,
-                                  p::CR3BPIndirectWithSTMParams, t)
+                                  p::CR3BPIndirectWithSTMParams, t,
+                                  homotopyFlag::MEMF)
     @inbounds begin
         # Evaluate state/co-state dynamics
-        GVec = cr3bpEomIndirect!(du, u, p, t)
+        GVec = cr3bpEomIndirect!(du, u, p, t, homotopyFlag)
 
         # Dynamics Jacobian
         jac = p.m1; jac .= 0.0
-        cr3bpEOMJac!(jac, u, p, GVec)
+        cr3bpEOMJac!(jac, u, p, GVec, homotopyFlag)
 
         # Compute STM derivs 
         Φ   = reshape(view(u,  15:210), (14,14))
@@ -39,7 +40,7 @@ function cr3bpEomIndirectWithSTM!(du::AbstractVector, u::AbstractVector,
     return nothing
 end
 
-function cr3bpEOMJac!(jac, u, p, GVec)
+function cr3bpEOMJac!(jac, u, p, GVec, homotopyFlag::MEMF)
 
     # Get requirements 
     TU  = p.crp.TU

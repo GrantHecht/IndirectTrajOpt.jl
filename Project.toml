@@ -22,9 +22,14 @@ Suppressor = "fd094767-a336-5f1f-9728-57cf17d0bbfb"
 
 [compat]
 BenchmarkTools = "1"
+DifferentialEquations = "6"
+DataFrames = "1"
 ForwardDiff = "0.10"
+JLD2 = "0.4"
 LoopVectorization = "0.12"
 Octavian = "0.3"
+ProgressMeter = "1"
+Reexport = "1"
 StaticArrays = "1"
 julia = "1.6"
 
