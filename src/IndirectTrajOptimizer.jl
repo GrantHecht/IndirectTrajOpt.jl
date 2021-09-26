@@ -1,5 +1,6 @@
+abstract type AbstractIndirectTrajOptimizer end
 
-struct IndirectTrajOptimizer{IPT,CSIT,ST}
+struct IndirectTrajOptimizer{IPT,CSIT,ST} <: AbstractIndirectOptimizationProblem
     # Indirect Trajectory Optimization problem 
     prob::IPT
 
@@ -18,15 +19,26 @@ struct IndirectTrajOptimizer{IPT,CSIT,ST}
     initCost::Symbol 
     initOptimizer::Symbol
     weights::Vector{Float64}
+    minNeighborhoodFrac::Float64
+    UBs::Vector{Float64}
+    LBs::Vector{Float64}
+    iUBs::Vector{Float64}
+    iLBs::Vector{Float64}
+    maxIters::Int 
+    funcTol::Float64
+    maxStallIters::Float64
+    maxStallTime::Float64
+    maxTime::Float64
+    useParallel::Bool 
 end
 
 function IndirectTrajOptimizer(prob; solutionMethod = :FSS, initCostFunc = :WSS, 
     initOptimizer = :PSO, numParticles = 500, numSwarms = 4, swarmInitMethod = :Uniform, 
     UBs = [100, 100, 100, 50, 50, 50, 50], LBs = [-100, -100, -100, -50, -50, -50, -50],
-    iUBs = nothing, iLBs = nothing, weights = [10, 10, 10, 1, 1, 1, 1], display = true,
+    iUBs = nothing, iLBs = nothing, weights = [10, 10, 10, 1, 1, 1, 1], MFD = 2.8e-6, display = true,
     displayInterval = 1, maxIters = 1000, funcTol = 1e-6, maxStallIters = 25, maxStallTime = 500,
     maxTime = 1800, useParallel = true, homotopyParamVec = nothing, dataFolder = nothing,
-    writeData = false)
+    minNeighborhoodFraction = 0.25,writeData = false)
 
     # Check that homotopy parameter vector has been set if homotopy is used 
     if prob.homotopy && homotopyParamVec === nothing
@@ -35,15 +47,14 @@ function IndirectTrajOptimizer(prob; solutionMethod = :FSS, initCostFunc = :WSS,
 
     # Initialize initializer and solver 
     if solutionMethod == :FSS
-
         # Initialize co-state initializer
         csInit = FSSCoStateInitializer(prob.initBVPFunc, prob.iConds, prob.fConds;
             costFunc = initCostFunc, optimizer = initOptimizer, numParticles = numParticles,
             numSwarms = numSwarms, initMethod = swarmInitMethod, UBs = UBs, LBs = LBs,
-            iUBs = iUBs, iLBs = iLBs, weights = weights, display = display,
+            iUBs = iUBs, iLBs = iLBs, weights = weights, MFD = MFD, display = display,
             displayInterval = displayInterval, maxIters = maxIters, funcTol, 
             maxStallIters = maxStallIters, maxStallTime = maxStallTime, maxTime = maxTime,
-            useParallel = useParallel)
+            minNeighborhoodFraction = minNeighborhoodFraction, useParallel = useParallel)
 
         # Initialize solver
         solver = FSSSolver(zeros(7), prob.iConds, prob.fConds, prob.BVPFunc, prob.BVPWithSTMFunc;
@@ -58,8 +69,17 @@ function IndirectTrajOptimizer(prob; solutionMethod = :FSS, initCostFunc = :WSS,
     end
     dataOutputManager = DataOutputManager(dataFolder)
 
+    if iUBs === nothing 
+        iUBs = Vector{Float64}(undef, 0)
+    end
+    if iLBs === nothing 
+        iLBs = Vector{Float64}(undef, 0)
+    end
+
     IndirectTrajOptimizer{typeof(prob), typeof(csInit), typeof(solver)}(prob, csInit, solver, 
-        writeData, dataOutputManager, solutionMethod, initCostFunc, initOptimizer, weights)
+        writeData, dataOutputManager, solutionMethod, initCostFunc, initOptimizer, weights,
+        minNeighborhoodFraction, UBs, LBs, iUBs, iLBs, maxIters, funcTol, maxStallIters, 
+        maxStallTime, maxTime, useParallel)
 end
 
 function initialize!(ito::IndirectTrajOptimizer)

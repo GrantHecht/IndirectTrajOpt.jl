@@ -7,8 +7,10 @@ using Reexport
 import IndirectCoStateInit: initialize!
 import IndirectShooting: solve!
 using JLD2
+using BSON
 using DataFrames
 using ProgressMeter
+using Suppressor
 
 # This stuff should be moved to a different package eventually
 using StaticArrays
@@ -45,7 +47,10 @@ export resurrectBinaryData
 
 # Integration Flags
 export CR3BP
+export MEMF
+export HypTenMF
 export Initialization
+export InitializationWithIntegralCost
 export Solving
 export SolvingWithSTM
 export FullSolutionHistory
