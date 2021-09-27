@@ -21,9 +21,10 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Suppressor = "fd094767-a336-5f1f-9728-57cf17d0bbfb"
 
 [compat]
+BSON = "0.3"
 BenchmarkTools = "1"
-DifferentialEquations = "6"
 DataFrames = "1"
+DifferentialEquations = "6"
 ForwardDiff = "0.10"
 JLD2 = "0.4"
 LoopVectorization = "0.12"
