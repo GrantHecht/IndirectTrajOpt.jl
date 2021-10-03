@@ -246,7 +246,7 @@ function readTextDataV0_1(files)
                     maxSTime = parse(Float64, str)
                 end
             elseif inConvData
-                if occursin("Time To Initialize:", line)
+                if occursin("Time to Initialize:", line)
                     str = split(line, "\t"; keepempty = false)[2]
                     str = replace(str, "sec" => "")
                     toi = parse(Float64, str)
