@@ -297,7 +297,11 @@ function computeU(S, utype, ϵ, homotopyFlag::HypTanMF)
     if ϵ != 0.0 
         return 0.5*(1.0 - tanh(S/ϵ))
     else
-        return 0.5*(1.0 - sign(S))
+        if utype == 2
+            return 1.0
+        else
+            return 0.0
+        end
     end
 end
 
