@@ -33,9 +33,9 @@ function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR
     # Instantiate callback
     if termCallbacks
         cb = VectorContinuousCallback(
-            cr3bpEomsCondition,
-            cr3bpEomsAffect!,
-            cr3bpEomsAffect!, 4;
+            (out,x,t,integ) -> cr3bpEomsCondition(out,x,t,integ, homotopyFlag),
+            (integ, idx) -> cr3bpEomsAffect!(integ, idx, homotopyFlag),
+            (integ, idx) -> cr3bpEomsAffect!(integ, idx, homotopyFlag), 4;
             idxs = nothing,
             rootfind = true,
             interp_points = 20,
@@ -44,9 +44,9 @@ function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR
             save_positions = save_positions)
     else
         cb = ContinuousCallback(
-            cr3bpEomsConditionNoTerm,
-            cr3bpEomsAffectNoTerm!,
-            cr3bpEomsAffectNoTerm!;
+            (x,t,integ) -> cr3bpEomsConditionNoTerm(x,t,integ, homotopyFlag),
+            (integ) -> cr3bpEomsAffectNoTerm!(integ, homotopyFlag),
+            (integ) -> cr3bpEomsAffectNoTerm!(integ, homotopyFlag);
             idxs = nothing,
             rootfind = true,
             interp_points = 20,
@@ -99,9 +99,9 @@ function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR
     # Instantiate callback
     if termCallbacks
         cb = VectorContinuousCallback(
-            cr3bpEomsCondition,
-            cr3bpEomsAffect!,
-            cr3bpEomsAffect!, 4;
+            (out,x,t,integ) -> cr3bpEomsCondition(out,x,t,integ, homotopyFlag),
+            (integ, idx) -> cr3bpEomsAffect!(integ, idx, homotopyFlag),
+            (integ, idx) -> cr3bpEomsAffect!(integ, idx, homotopyFlag), 4;
             idxs = nothing,
             rootfind = true,
             interp_points = 20,
@@ -110,9 +110,9 @@ function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR
             save_positions = save_positions)
     else
         cb = ContinuousCallback(
-            cr3bpEomsConditionNoTerm,
-            cr3bpEomsAffectNoTerm!,
-            cr3bpEomsAffectNoTerm!;
+            (x,t,integ) -> cr3bpEomsConditionNoTerm(x,t,integ, homotopyFlag),
+            (integ) -> cr3bpEomsAffectNoTerm!(integ, homotopyFlag),
+            (integ) -> cr3bpEomsAffectNoTerm!(integ, homotopyFlag);
             idxs = nothing,
             rootfind = true,
             interp_points = 20,
@@ -166,9 +166,9 @@ function createCR3BPODEWithSTMProb(z0::AbstractVector, tspan::Tuple, params::CR3
 
     # Instantiate callback
     cb = ContinuousCallback(
-        cr3bpEomsConditionNoTerm,
-        cr3bpEomsAffectNoTermWithSTM!,
-        cr3bpEomsAffectNoTermWithSTM!;
+        (x,t,integ) -> cr3bpEomsConditionNoTerm(x,t,integ, homotopyFlag),
+        (integ) -> cr3bpEomsAffectNoTerm!(integ, homotopyFlag),
+        (integ) -> cr3bpEomsAffectNoTerm!(integ, homotopyFlag);
         idxs = nothing,
         rootfind = true,
         interp_points = 10,

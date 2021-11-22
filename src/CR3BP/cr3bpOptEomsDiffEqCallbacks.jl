@@ -1,5 +1,5 @@
 
-function cr3bpEomsCondition(out, x, t, integrator)
+function cr3bpEomsCondition(out, x, t, integrator, homotopyFlag::MEMF)
 
     # Get Requirements
     TU  = integrator.p.crp.TU
@@ -44,7 +44,7 @@ function cr3bpEomsCondition(out, x, t, integrator)
     out[4] = r2*LU - R2 
 end
 
-function cr3bpEomsAffect!(integrator, idx)
+function cr3bpEomsAffect!(integrator, idx, homotopyFlag::MEMF)
 
     # Get Requirements
     TU  = integrator.p.crp.TU
@@ -90,7 +90,7 @@ function cr3bpEomsAffect!(integrator, idx)
     end
 end
 
-function cr3bpEomsConditionNoTerm(x, t, integrator)
+function cr3bpEomsConditionNoTerm(x, t, integrator, homotopyFlag::MEMF)
 
     # Get Requirements
     TU  = integrator.p.crp.TU
@@ -124,7 +124,7 @@ function cr3bpEomsConditionNoTerm(x, t, integrator)
     return out
 end
 
-function cr3bpEomsAffectNoTerm!(integrator)
+function cr3bpEomsAffectNoTerm!(integrator, homotopyFlag::MEMF)
 
     # Get Requirements
     TU  = integrator.p.crp.TU
@@ -163,7 +163,7 @@ function cr3bpEomsAffectNoTerm!(integrator)
     auto_dt_reset!(integrator)
 end
 
-function cr3bpEomsAffectNoTermWithSTM!(integrator)
+function cr3bpEomsAffectNoTermWithSTM!(integrator, homotopyFlag::MEMF)
 
     # Get Requirements
     TU  = integrator.p.crp.TU
