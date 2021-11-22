@@ -190,14 +190,163 @@ function cr3bpEomsAffectNoTermWithSTM!(integrator, homotopyFlag::MEMF)
             end
         end
     else 
-        propSTM!(integrator.u, integrator.p)
+        propSTM!(integrator.u, integrator.p, homotopyFlag)
     end
 
     # Reset step 
     auto_dt_reset!(integrator)
 end
 
-function propSTM!(u::AbstractVector, ps::CR3BPIndirectWithSTMParams)
+function cr3bpEomsCondition(out, x, t, integrator, homotopyFlag::HypTanMF)
+
+    # Get Requirements
+    TU  = integrator.p.crp.TU
+    LU  = integrator.p.crp.LU
+    MU  = integrator.p.crp.MU 
+    R1  = integrator.p.crp.R1
+    R2  = integrator.p.crp.R2
+    μ   = integrator.p.crp.μ
+    isp = integrator.p.sp.isp
+    m0  = integrator.p.sp.initMass
+    mp  = integrator.p.sp.initProp
+
+    ϵ   = integrator.p.ϵ
+
+    # Compute Scaling
+    cSc = isp*9.81*TU / (LU * 1000.0)
+    
+    # Compute required
+    λv = sqrt(x[11]^2 + x[12]^2 + x[13]^2)
+    S  = computeS(x, λv, cSc)
+    xpμ = x[1] + μ
+    r1  = sqrt(xpμ^2 + x[2]^2 + x[3]^2)
+    r2  = sqrt((xpμ - 1)^2 + x[2]^2 + x[3]^2) 
+
+    # Switching condition 
+    if ϵ != 0.0
+        out[1] = 1.0 
+    else
+        out[1] = S
+    end
+
+    # Termination conditions 
+    out[2] = x[7]*MU - (m0 - mp)
+    out[3] = r1*LU - R1 
+    out[4] = r2*LU - R2 
+end
+
+function cr3bpEomsAffect!(integrator, idx, homotopyFlag::HypTanMF)
+
+    # Get Requirements
+    TU  = integrator.p.crp.TU
+    LU  = integrator.p.crp.LU
+    isp = integrator.p.sp.isp
+
+    ϵ   = integrator.p.ϵ
+    utype = integrator.p.utype
+
+    # Switching affect 
+    if idx == 1
+        if ϵ == 0.0 
+            if utype == 0
+                integrator.p.utype = 2
+            else
+                integrator.p.utype = 0
+            end
+        end
+
+        # Reset step 
+        auto_dt_reset!(integrator)
+
+    # Termination affect
+    else
+        terminate!(integrator)
+    end
+end
+
+function cr3bpEomsConditionNoTerm(x, t, integrator, homotopyFlag::HypTanMF)
+
+    # Get Requirements
+    TU  = integrator.p.crp.TU
+    LU  = integrator.p.crp.LU
+    isp = integrator.p.sp.isp
+
+    ϵ   = integrator.p.ϵ
+
+    # Compute Scaling
+    cSc = isp*9.81*TU / (LU * 1000.0)
+    
+    # Compute required
+    λv = sqrt(x[11]^2 + x[12]^2 + x[13]^2)
+    S  = computeS(x, λv, cSc)
+
+    # Switching condition 
+    out = 1.0
+    if ϵ == 0.0
+        out = S
+    end
+
+    return out
+end
+
+function cr3bpEomsAffectNoTerm!(integrator, homotopyFlag::HypTanMF)
+
+    # Get Requirements
+    TU  = integrator.p.crp.TU
+    LU  = integrator.p.crp.LU
+    isp = integrator.p.sp.isp
+
+    ϵ   = integrator.p.ϵ
+    utype = integrator.p.utype
+
+    # Switching affect 
+    if ϵ == 0.0 
+        if utype == 0
+            integrator.p.utype = 2
+        else
+            integrator.p.utype = 0
+        end
+    end
+
+    # Reset step 
+    auto_dt_reset!(integrator)
+end
+
+function cr3bpEomsAffectNoTermWithSTM!(integrator, homotopyFlag::HypTanMF)
+
+    # Get Requirements
+    TU  = integrator.p.crp.TU
+    LU  = integrator.p.crp.LU
+    isp = integrator.p.sp.isp
+
+    ϵ   = integrator.p.ϵ
+    utype = integrator.p.utype
+
+    # Switching affect 
+    if ϵ != 0.0 
+        if utype != 1
+            integrator.p.utype = 1
+        else
+            cSc = isp*9.81*TU / (LU*1000.0)
+            λv = sqrt(integrator.u[11]*integrator.u[11] + 
+                      integrator.u[12]*integrator.u[12] + 
+                      integrator.u[13]*integrator.u[13])
+            S = computeS(integrator.u, λv, cSc)
+            if S < 0.0
+                integrator.p.utype = 2
+            else
+                integrator.p.utype = 0
+            end
+        end
+    else 
+        propSTM!(integrator.u, integrator.p, homotopyFlag)
+    end
+
+    # Reset step 
+    auto_dt_reset!(integrator)
+end
+
+function propSTM!(u::AbstractVector, ps::CR3BPIndirectWithSTMParams, homotopyFlag::HomotopyFlag)
     @inbounds begin
         # Get requirements 
         TU  = ps.crp.TU
@@ -214,13 +363,13 @@ function propSTM!(u::AbstractVector, ps::CR3BPIndirectWithSTMParams)
         λv = sqrt(u[11]^2 + u[12]^2 + u[13]^2)
 
         # Get state/co-state derivatives before updating utype
-        dy⁻ = cr3bpEomIndirect(view(u, 1:14), ps, 0.0, MEMF())
+        dy⁻ = cr3bpEomIndirect(view(u, 1:14), ps, 0.0, homotopyFlag)
 
         # Update utype 
         ps.utype == 0 ? ps.utype = 2 : ps.utype = 0
 
         # Get state/co-state derivatives after updating utype
-        dy⁺ = cr3bpEomIndirect(view(u, 1:14), ps, 0.0, MEMF())
+        dy⁺ = cr3bpEomIndirect(view(u, 1:14), ps, 0.0, homotopyFlag)
 
         # Compute dy difference
         dyDiff = @SVector [dy⁺[1]  - dy⁻[1],
