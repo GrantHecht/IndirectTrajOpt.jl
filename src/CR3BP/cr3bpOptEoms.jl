@@ -230,7 +230,7 @@ function cr3bpEomIndirectIntegralCost(u::AbstractVector, p::AbstractCR3BPIndirec
     # Derivatives
     dx      = cr3bpEomControl(u,p.crp,t,at)
     dλ      = cr3bpCostateEom(u,p, γ, homotopyFlag)
-    iCost   = integCost(γ, ps.ϵ, homotopyFlag)
+    iCost   = integCost(γ, p.ϵ, homotopyFlag)
     du = @SVector [dx[1], dx[2], dx[3], dx[4], dx[5], dx[6], -γ*tMaxSc / cSc,
                    dλ[1], dλ[2], dλ[3], dλ[4], dλ[5], dλ[6], dλ[7], iCost]
 

@@ -3,7 +3,7 @@
 # and termination if fuel is depleated for impact with body. A copy of parameters is 
 # created if copyParams = true, which is required if numerically integrating in parallel
 function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR3BPIndirectParams, 
-    integrationTypeFlag::IntegrationFlag, homotopyFlag::MEMF; copyParams = false, 
+    integrationTypeFlag::IntegrationFlag, homotopyFlag::HomotopyFlag; copyParams = false, 
     termCallbacks = false, inPlace = false, ϵ = -1.0, save_positions = (false, false))
 
     # Copy parameters if desired
@@ -65,7 +65,7 @@ function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR
 end
 
 function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, params::AbstractCR3BPIndirectParams, 
-    integrationTypeFlag::InitializationWithIntegralCost, homotopyFlag::MEMF; copyParams = false, 
+    integrationTypeFlag::InitializationWithIntegralCost, homotopyFlag::HomotopyFlag; copyParams = false, 
     termCallbacks = false, inPlace = false, ϵ = -1.0, save_positions = (false, false))
 
     if length(y0) != 15
@@ -138,7 +138,7 @@ function createCR3BPODEProb(y0::AbstractVector, tspan::Tuple, scenario::String,
 end
 
 function createCR3BPODEWithSTMProb(z0::AbstractVector, tspan::Tuple, params::CR3BPIndirectWithSTMParams, 
-    homotopyFlag::MEMF; copyParams = false, ϵ = -1.0)
+    homotopyFlag::HomotopyFlag; copyParams = false, ϵ = -1.0)
 
     # Copy parameters if desired
     if copyParams 
