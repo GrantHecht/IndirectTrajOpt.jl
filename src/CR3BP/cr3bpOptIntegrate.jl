@@ -16,7 +16,7 @@ function integrate(y0, tspan, ps::AbstractCR3BPIndirectParams, dynamicsFlag::CR3
         save_everystep = false,
         save_start = false,
         initialize_save = false,
-        maxiters = 1e6
+        maxiters = 1e7
         )
 
     # Compute time to desired final time if terminated
@@ -46,7 +46,7 @@ function integrate(y0, tspan, ps::AbstractCR3BPIndirectParams, dynamicsFlag::CR3
         save_everystep = false,
         save_start = false,
         initialize_save = false,
-        maxiters = 1e6
+        maxiters = 1e7
         )
 
     # Return final states and co-states
@@ -65,10 +65,10 @@ function integrate(y0, tspan, ps::AbstractCR3BPIndirectParams, dynamicsFlag::CR3
     # Solve ode 
     sol = solve(
         prob,
-        Vern9(),
+        Vern9(lazy = false),
         reltol = 1e-14,
         abstol = 1e-14,
-        maxiters = 1e6
+        maxiters = 1e7
         )
 
     # Return final states and co-states
@@ -92,7 +92,7 @@ function integrateWithHomotopy(y0, tspan, ϵ, ps::AbstractCR3BPIndirectParams, d
         save_everystep = false,
         save_start = false,
         initialize_save = false,
-        maxiters = 1e6
+        maxiters = 1e7
         )
 
     # Return final states and co-states
@@ -156,7 +156,7 @@ function integrate(x0, tspan, scenario::String, dynamicsFlag::CR3BP,
         Vern9(),
         reltol = 1e-14,
         abstol = 1e-14,
-        maxiters = 1e6
+        maxiters = 1e7
         )
 
     # Return final states and co-states

@@ -160,13 +160,15 @@ function writeTextData(dom::DataOutputManager, ito)
 
     # Write convergence data
     println(fid, "# CONVERGENCE DATA")
-    println(fid, "Time to Initialize:\t\t\t\t" * string(ito.csInit.ho.results.time) * " sec")
-    println(fid, "Initialization Iterations:\t\t" * string(ito.csInit.ho.results.iters))
-    if ito.initOptimizer == :PSO || ito.initOptimizer == :MS_PSO
-        println(fid, "Initialization Func. Evals.:\t" * 
-            string(numParticles*ito.csInit.ho.results.iters))
+    if !(ito.csInit.ho isa Symbol)
+        println(fid, "Time to Initialize:\t\t\t\t" * string(ito.csInit.ho.results.time) * " sec")
+        println(fid, "Initialization Iterations:\t\t" * string(ito.csInit.ho.results.iters))
+        if ito.initOptimizer == :PSO || ito.initOptimizer == :MS_PSO
+            println(fid, "Initialization Func. Evals.:\t" * 
+                string(numParticles*ito.csInit.ho.results.iters))
+        end
+        println(fid, "Heuristic Opj. Function:\t\t" * string(ito.csInit.ho.results.fbest))
     end
-    println(fid, "Heuristic Opj. Function:\t\t" * string(ito.csInit.ho.results.fbest))
     println(fid, "Initial Guess Converged:\t\t" * 
         (GetInitialGuessConverged(ito.solver) ? "Yes" : "No"))
     if ito.prob.homotopy 

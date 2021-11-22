@@ -1,9 +1,10 @@
 module IndirectTrajOpt
 
-using Reexport
-
-@reexport using IndirectCoStateInit
-@reexport using IndirectShooting
+#using Reexport
+#@reexport using IndirectCoStateInit
+#@reexport using IndirectShooting
+using IndirectCoStateInit
+using IndirectShooting
 import IndirectCoStateInit: initialize!
 import IndirectShooting: solve!
 using JLD2
