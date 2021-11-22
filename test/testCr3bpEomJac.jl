@@ -23,12 +23,12 @@ for utype in [0,1,2]
     ps.utype = utype
     # Evaluate eoms with Jacobian
     dz0 = zeros(210)
-    IndirectTrajOpt.cr3bpEomIndirectWithSTM!(dz0, z0, ps, 0.0)
+    IndirectTrajOpt.cr3bpEomIndirectWithSTM!(dz0, z0, ps, 0.0, MEMF())
 
     # Evaluate Jacobian of eoms with ForwardDiff
     dy0 = zeros(14)
     jac = ForwardDiff.jacobian(
-        (y,x)->IndirectTrajOpt.cr3bpEomIndirect!(y,x,ps,0.0), 
+        (y,x)->IndirectTrajOpt.cr3bpEomIndirect!(y,x,ps,0.0, MEMF()), 
         dy0, y0)
     ps.utype
     # Evaluate jacobian difference
@@ -45,12 +45,12 @@ for utype in [0,2]
     ps.utype = utype
     # Evaluate eoms with Jacobian
     dz0 = zeros(210)
-    IndirectTrajOpt.cr3bpEomIndirectWithSTM!(dz0, z0, ps, 0.0)
+    IndirectTrajOpt.cr3bpEomIndirectWithSTM!(dz0, z0, ps, 0.0, MEMF())
 
     # Evaluate Jacobian of eoms with ForwardDiff
     dy0 = zeros(14)
     jac = ForwardDiff.jacobian(
-        (y,x)->IndirectTrajOpt.cr3bpEomIndirect!(y,x,ps,0.0), 
+        (y,x)->IndirectTrajOpt.cr3bpEomIndirect!(y,x,ps,0.0, MEMF()), 
         dy0, y0)
     ps.utype
     # Evaluate jacobian difference
@@ -62,7 +62,51 @@ for utype in [0,2]
     end
 end
 
+begin
+    ps.ϵ = 1.0
+    # Evaluate eoms with Jacobian
+    dz0 = zeros(210)
+    IndirectTrajOpt.cr3bpEomIndirectWithSTM!(dz0, z0, ps, 0.0, HypTanMF())
+
+    # Evaluate Jacobian of eoms with ForwardDiff
+    dy0 = zeros(14)
+    jac = ForwardDiff.jacobian(
+        (y,x)->IndirectTrajOpt.cr3bpEomIndirect!(y,x,ps,0.0, HypTanMF()), 
+        dy0, y0)
+    ps.utype
+    # Evaluate jacobian difference
+    jacDiff = abs.(reshape(dz0[15:end], (14,14)) .- jac)
+end
+
+# Tests 
+for i in 1:196
+    @test jacDiff[i] < 1e-9
+end
+
+ps.ϵ = 0.0
+for utype in [0,2]
+    ps.utype = utype
+    # Evaluate eoms with Jacobian
+    local dz0 = zeros(210)
+    IndirectTrajOpt.cr3bpEomIndirectWithSTM!(dz0, z0, ps, 0.0, HypTanMF())
+
+    # Evaluate Jacobian of eoms with ForwardDiff
+    local dy0 = zeros(14)
+    local jac = ForwardDiff.jacobian(
+        (y,x)->IndirectTrajOpt.cr3bpEomIndirect!(y,x,ps,0.0, HypTanMF()), 
+        dy0, y0)
+    ps.utype
+    # Evaluate jacobian difference
+    local jacDiff = abs.(reshape(dz0[15:end], (14,14)) .- jac)
+
+    # Tests 
+    for i in 1:196
+        @test jacDiff[i] < 1e-9
+    end
+end
+
 # Define function for test
+"""
 function cr3bpAnalyticJacTestFunc(x, tspan, ps)
     out, extra = cr3bpOptIntegrate(x, tspan, ps)
     return out
@@ -87,3 +131,4 @@ for ϵ in [1.0, 0.5, 0.0]
         @test jacDiff[i] < 1e-2
     end
 end
+"""

@@ -20,7 +20,7 @@ mutable struct CR3BPIndirectParams <: AbstractCR3BPIndirectParams
 end
 
 # CR3BP CoState Dynamics
-function cr3bpCostateEom(u::AbstractArray, p::AbstractCR3BPIndirectParams, γ, homotopyFlag::MEMF)
+function cr3bpCostateEom(u::AbstractArray, p::AbstractCR3BPIndirectParams, γ, homotopyFlag::HomotopyFlag)
     @inbounds begin
         # Get requirements 
         TU  = p.crp.TU
@@ -71,7 +71,7 @@ end
 
 function cr3bpCostateEom!(dλ::AbstractArray, u::AbstractArray, 
                           p::AbstractCR3BPIndirectParams, γ,
-                          homotopyFlag::MEMF)
+                          homotopyFlag::HomotopyFlag)
     @inbounds begin
     # Get requirements 
     TU  = p.crp.TU
@@ -119,7 +119,7 @@ function cr3bpCostateEom!(dλ::AbstractArray, u::AbstractArray,
 end
 
 # CR3BP Indirect EOMs 
-function cr3bpEomIndirect(u::AbstractVector, p::AbstractCR3BPIndirectParams, t, homotopyFlag::MEMF)
+function cr3bpEomIndirect(u::AbstractVector, p::AbstractCR3BPIndirectParams, t, homotopyFlag::HomotopyFlag)
     @inbounds begin
 
     # Get requirements 
@@ -141,7 +141,7 @@ function cr3bpEomIndirect(u::AbstractVector, p::AbstractCR3BPIndirectParams, t, 
 
     # Compute throttline 
     S = computeS(u, λv, cSc)
-    γ = computeU(S, p.utype, p.ϵ)
+    γ = computeU(S, p.utype, p.ϵ, homotopyFlag)
 
     # Compute Thrust Acceleration
     atMag = γ*tMaxSc / u[7]
@@ -160,7 +160,7 @@ function cr3bpEomIndirect(u::AbstractVector, p::AbstractCR3BPIndirectParams, t, 
 end
 
 function cr3bpEomIndirect!(du::AbstractVector, u::AbstractVector,
-                           p::AbstractCR3BPIndirectParams, t, homotopyFlag::MEMF)
+                           p::AbstractCR3BPIndirectParams, t, homotopyFlag::HomotopyFlag)
     @inbounds begin
     # Get requirements 
     TU  = p.crp.TU
@@ -181,7 +181,7 @@ function cr3bpEomIndirect!(du::AbstractVector, u::AbstractVector,
 
     # Compute throttline 
     S = computeS(u, λv, cSc)
-    γ = computeU(S, p.utype, p.ϵ)
+    γ = computeU(S, p.utype, p.ϵ, homotopyFlag)
 
     # Compute Thrust Acceleration
     atMag = γ*tMaxSc / u[7]
@@ -197,7 +197,7 @@ function cr3bpEomIndirect!(du::AbstractVector, u::AbstractVector,
     return GVec
 end
 
-function cr3bpEomIndirectIntegralCost(u::AbstractVector, p::AbstractCR3BPIndirectParams, t, homotopyFlag::MEMF)
+function cr3bpEomIndirectIntegralCost(u::AbstractVector, p::AbstractCR3BPIndirectParams, t, homotopyFlag::HomotopyFlag)
     @inbounds begin
 
     # Get requirements 
@@ -219,7 +219,7 @@ function cr3bpEomIndirectIntegralCost(u::AbstractVector, p::AbstractCR3BPIndirec
 
     # Compute throttline 
     S = computeS(u, λv, cSc)
-    γ = computeU(S, p.utype, p.ϵ)
+    γ = computeU(S, p.utype, p.ϵ, homotopyFlag)
 
     # Compute Thrust Acceleration
     atMag = γ*tMaxSc / u[7]
@@ -230,15 +230,15 @@ function cr3bpEomIndirectIntegralCost(u::AbstractVector, p::AbstractCR3BPIndirec
     # Derivatives
     dx      = cr3bpEomControl(u,p.crp,t,at)
     dλ      = cr3bpCostateEom(u,p, γ, homotopyFlag)
-    usqr    = γ - p.ϵ*γ*(1.0 - γ)
+    iCost   = integCost(γ, ps.ϵ, homotopyFlag)
     du = @SVector [dx[1], dx[2], dx[3], dx[4], dx[5], dx[6], -γ*tMaxSc / cSc,
-                   dλ[1], dλ[2], dλ[3], dλ[4], dλ[5], dλ[6], dλ[7], usqr]
+                   dλ[1], dλ[2], dλ[3], dλ[4], dλ[5], dλ[6], dλ[7], iCost]
 
     return du
     end
 end
 
-function cr3bpEomIndirectIntegralCost!(du::AbstractArray, u::AbstractArray, p::AbstractCR3BPIndirectParams, t, homotopyFlag::MEMF)
+function cr3bpEomIndirectIntegralCost!(du::AbstractArray, u::AbstractArray, p::AbstractCR3BPIndirectParams, t, homotopyFlag::HomotopyFlag)
     @inbounds begin
     # Get requirements 
     TU  = p.crp.TU
@@ -259,7 +259,7 @@ function cr3bpEomIndirectIntegralCost!(du::AbstractArray, u::AbstractArray, p::A
 
     # Compute throttline 
     S = computeS(u, λv, cSc)
-    γ = computeU(S, p.utype, p.ϵ)
+    γ = computeU(S, p.utype, p.ϵ, homotopyFlag)
 
     # Compute Thrust Acceleration
     atMag = γ*tMaxSc / u[7]
@@ -271,7 +271,7 @@ function cr3bpEomIndirectIntegralCost!(du::AbstractArray, u::AbstractArray, p::A
     cr3bpEomControl!(view(du,1:6), u, p.crp, t, at)
     du[7]   = -γ*tMaxSc / cSc
     GVec    = cr3bpCostateEom!(view(du,8:14), u, p, γ, homotopyFlag)
-    du[15]  = γ - p.ϵ*γ*(1.0 - γ)
+    du[15]  = integCost(γ, p.ϵ, homotopyFlag)
     end
     return GVec
 end
@@ -283,7 +283,7 @@ function computeS(x::AbstractVector, λv, cSc)
     end
 end
 
-function computeU(S, utype, ϵ)
+function computeU(S, utype, ϵ, homotopyFlag::MEMF)
     if utype == 2
         return 1.0
     elseif utype == 0
@@ -291,6 +291,26 @@ function computeU(S, utype, ϵ)
     else
         return (ϵ - S) / (2.0*ϵ)
     end
+end
+
+function computeU(S, utype, ϵ, homotopyFlag::HypTanMF)
+    if ϵ != 0.0 
+        return 0.5*(1.0 - tanh(S/ϵ))
+    else
+        if utype == 2
+            return 1.0
+        else
+            return 0.0
+        end
+    end
+end
+
+function integCost(u,ϵ,homotopyFlag::MEMF)
+    return u - ϵ*u*(1 - u)
+end
+
+function integCost(u,ϵ,HomotopyFlag::HypTanMF)
+    return u^2
 end
 
 
