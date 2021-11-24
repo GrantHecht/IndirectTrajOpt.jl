@@ -7,7 +7,7 @@ using IndirectCoStateInit
 using IndirectShooting
 import IndirectCoStateInit: initialize!
 import IndirectShooting: solve!
-using JLD2
+#using JLD2
 using BSON
 using DataFrames
 using ProgressMeter
@@ -37,8 +37,9 @@ include("CR3BP/initCR3BPIndirectParams.jl")
 
 # Indirect Optimization 
 include("IndirectOptimizationProblem.jl")
-include("DataOutputManager.jl")
+include("Utils/DataOutputManager.jl")
 include("IndirectTrajOptimizer.jl")
+include("Utils/writeData.jl")
 
 # Exports 
 # Utility functions

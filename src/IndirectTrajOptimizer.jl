@@ -1,6 +1,6 @@
 abstract type AbstractIndirectTrajOptimizer end
 
-struct IndirectTrajOptimizer{IPT,CSIT,ST} <: AbstractIndirectOptimizationProblem
+struct IndirectTrajOptimizer{IPT,CSIT,ST} <: AbstractIndirectTrajOptimizer
     # Indirect Trajectory Optimization problem 
     prob::IPT
 
@@ -30,6 +30,57 @@ struct IndirectTrajOptimizer{IPT,CSIT,ST} <: AbstractIndirectOptimizationProblem
     maxStallTime::Float64
     maxTime::Float64
     useParallel::Bool 
+end
+
+struct InitializedIndirectTrajOptimizer{IPT,ST} <: AbstractIndirectTrajOptimizer
+    # Indirect Trajectory Optimization Problem
+    prob::IPT 
+    
+    # Indirect solver
+    solver::ST
+
+    # Data Output Manager
+    writingData::Bool
+    dataOutputManager::DataOutputManager
+
+    # Initialized co-states 
+    λi::Vector{Float64}
+
+    # Solution method
+    solMethod::Symbol
+
+    # Optional Info From Initialization 
+    fval::Float64
+    time::Float64
+    fevals::Int 
+    iters::Int
+end
+
+function IndirectTrajOptimizer(prob, λ0; solutionMethod = :FSS, homotopyParamVec = nothing, 
+    dataFolder = nothing, writeData = false, fval = -1.0, time = -1.0, fevals = -1, iters = -1)
+
+    # Check that homotopy parameter vector has been set if homotopy is used 
+    if prob.homotopy && homotopyParamVec === nothing
+        throw(ArgumentError("Problem specified to use homotopy continuation but continuation parameters not provided."))
+    end
+
+    # Inititialize Solver 
+    if solutionMethod == :FSS 
+        solver = FSSSolver(λ0, prob.iConds, prob.fConds, prob.BVPFunc, prob.BVPWithSTMFunc;
+            homotopy = prob.homotopy, homotopyParamVec = homotopyParamVec)
+    else
+        throw(ArgumentError("Only forward sigle shooting is implemented."))
+    end
+
+    # Initialize DataOutputManager
+    if dataFolder === nothing 
+        dataFolder = joinpath(pwd(), "data")
+    end
+    dataOutputManager = DataOutputManager(dataFolder)
+
+    # Create indirect optimizer
+    InitializedIndirectTrajOptimizer{typeof(prob),typeof(solver)}(prob, solver, writeData, dataOutputManager, 
+        λ0,solutionMethod, fval, time, fevals, iters)
 end
 
 function IndirectTrajOptimizer(prob; solutionMethod = :FSS, initCostFunc = :WSS, 
@@ -109,6 +160,20 @@ function solve!(ito::IndirectTrajOptimizer; factor = 3.0, ftol = 1e-8, showTrace
 
     return nothing
 end
+
+function solve!(ito::InitializedIndirectTrajOptimizer; factor = 3.0, ftol = 1e-8, showTrace = true, convergenceAttempts = 4)
+    # Initial data write because we havent yet with initialized trajectory optimizer
+    if ito.writingData; writeData(ito.dataOutputManager, ito); end
+
+    # Solve 
+    solve!(ito.solver; factor = factor, ftol = ftol, showTrace = showTrace, convergenceAttempts = convergenceAttempts)
+
+    # Write data if desired 
+    if ito.writingData; writeData(ito.dataOutputManager, ito); end
+
+    return nothing
+end
+
 
 function tSolve!(itoVec; factor = 3.0, ftol = 1e-8, showTrace = true, convergenceAttempts = 4)
     p = Progress(length(itoVec), 1, "Solving BVPs: ")
