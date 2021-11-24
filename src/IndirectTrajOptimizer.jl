@@ -43,6 +43,9 @@ struct InitializedIndirectTrajOptimizer{IPT,ST} <: AbstractIndirectTrajOptimizer
     writingData::Bool
     dataOutputManager::DataOutputManager
 
+    # Initialized co-states 
+    λi::Vector{Float64}
+
     # Solution method
     solMethod::Symbol
 
@@ -76,14 +79,8 @@ function IndirectTrajOptimizer(prob, λ0; solutionMethod = :FSS, homotopyParamVe
     dataOutputManager = DataOutputManager(dataFolder)
 
     # Create indirect optimizer
-    ito = InitializedIndirectTrajOptimizer{typeof(prob),typeof(solver)}(prob, solver, writeData, dataOutputManager, 
-        solutionMethod, fval, time, fevals, iters)
-
-    # Write initial data if desired
-    if ito.writingData
-        writeData(ito.dataOutputManager, ito)
-    end
-    return ito
+    InitializedIndirectTrajOptimizer{typeof(prob),typeof(solver)}(prob, solver, writeData, dataOutputManager, 
+        λ0,solutionMethod, fval, time, fevals, iters)
 end
 
 function IndirectTrajOptimizer(prob; solutionMethod = :FSS, initCostFunc = :WSS, 
@@ -163,6 +160,20 @@ function solve!(ito::IndirectTrajOptimizer; factor = 3.0, ftol = 1e-8, showTrace
 
     return nothing
 end
+
+function solve!(ito::InitializedIndirectTrajOptimizer; factor = 3.0, ftol = 1e-8, showTrace = true, convergenceAttempts = 4)
+    # Initial data write because we havent yet with initialized trajectory optimizer
+    if ito.writingData; writeData(ito.dataOutputManager, ito); end
+
+    # Solve 
+    solve!(ito.solver; factor = factor, ftol = ftol, showTrace = showTrace, convergenceAttempts = convergenceAttempts)
+
+    # Write data if desired 
+    if ito.writingData; writeData(ito.dataOutputManager, ito); end
+
+    return nothing
+end
+
 
 function tSolve!(itoVec; factor = 3.0, ftol = 1e-8, showTrace = true, convergenceAttempts = 4)
     p = Progress(length(itoVec), 1, "Solving BVPs: ")

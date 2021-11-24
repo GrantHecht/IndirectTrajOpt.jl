@@ -205,20 +205,18 @@ function writeTextData(dom::DataOutputManager, ito::InitializedIndirectTrajOptim
 
     # Write convergence data
     println(fid, "# CONVERGENCE DATA")
-    if !(ito.csInit.ho isa Symbol)
-        if ito.time > 0.0
-            println(fid, "Time to Initialize:\t\t\t\t" * string(ito.time) * " sec")
-        end
-        if ito.iters > 0
-            println(fid, "Initialization Iterations:\t\t" * string(ito.iters))
-        end
-        if ito.fevals > 0
-            println(fid, "Initialization Func. Evals.:\t" * 
-                string(ito.fevals))
-        end
-        if ito.fval >= 0.0
-            println(fid, "Heuristic Opj. Function:\t\t" * string(ito.fval))
-        end
+    if ito.time > 0.0
+        println(fid, "Time to Initialize:\t\t\t\t" * string(ito.time) * " sec")
+    end
+    if ito.iters > 0
+        println(fid, "Initialization Iterations:\t\t" * string(ito.iters))
+    end
+    if ito.fevals > 0
+        println(fid, "Initialization Func. Evals.:\t" * 
+            string(ito.fevals))
+    end
+    if ito.fval >= 0.0
+        println(fid, "Heuristic Opj. Function:\t\t" * string(ito.fval))
     end
     println(fid, "Initial Guess Converged:\t\t" * 
         (GetInitialGuessConverged(ito.solver) ? "Yes" : "No"))
@@ -231,7 +229,7 @@ function writeTextData(dom::DataOutputManager, ito::InitializedIndirectTrajOptim
     # Write co-state data
     println(fid, "# COSTATE DATA")
     println(fid, "Initialized Co-States:")
-    initCSVec = GetInitializedCostates(ito.csInit)
+    initCSVec = ito.λi
     linestr = ""
     for i in 1:length(initCSVec)
         linestr *= string(initCSVec[i]) * "\t"
