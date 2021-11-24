@@ -1,30 +1,9 @@
-
-mutable struct DataOutputManager
-
-    # Base folder location. Should be full file path and not local
-    baseFolder::String
-
-    # File name without extension
-    fname::String
-
-    # File name initialized flag
-    fnameInitialized::Bool
-
-    # Text file format version
-    textFormatVersion::String
-
-    # Constructor
-    function DataOutputManager(baseFolder::String)
-        new(baseFolder, "", false, "v0.1")
-    end
-end
-
 # Function writes all data from the IndirectTrajectoryOptimizer to 
 # a .txt file and an HDL5 binary file (using JLD2.jl).
 #
 # Called after each action is performed by IndirectTrajOptimizer to 
 # "hopefully" ensure no data loss.
-function writeData(dom::DataOutputManager, ito)
+function writeData(dom::DataOutputManager, ito::AbstractIndirectTrajOptimizer)
 
     # Initialize file name if necessary. If file name is not initialized
     # directories may not be either so initialize directories if necessary.
@@ -67,13 +46,12 @@ function writeData(dom::DataOutputManager, ito)
     return nothing
 end
 
-function writeBinaryData(dom::DataOutputManager, ito)
-    #jldsave(joinpath(dom.baseFolder, "binaryData", dom.fname*".jld2"), data = ito)
+function writeBinaryData(dom::DataOutputManager, ito::AbstractIndirectTrajOptimizer)
     bson(joinpath(dom.baseFolder, "binaryData", dom.fname*".bson"), Dict(:data=>ito))
     return nothing
 end
 
-function writeTextData(dom::DataOutputManager, ito)
+function writeTextData(dom::DataOutputManager, ito::IndirectTrajOptimizer)
     # Open file
     fid = open(joinpath(dom.baseFolder, "textData", dom.fname*".txt"), "w")
 
@@ -168,6 +146,79 @@ function writeTextData(dom::DataOutputManager, ito)
                 string(numParticles*ito.csInit.ho.results.iters))
         end
         println(fid, "Heuristic Opj. Function:\t\t" * string(ito.csInit.ho.results.fbest))
+    end
+    println(fid, "Initial Guess Converged:\t\t" * 
+        (GetInitialGuessConverged(ito.solver) ? "Yes" : "No"))
+    if ito.prob.homotopy 
+        println(fid, "Homotopy Converged:\t\t\t\t" * 
+        (GetHomotopyConverged(ito.solver) ? "Yes" : "No"))
+    end
+    println(fid, "# END CONVERGENCE DATA"); println(fid, "")
+
+    # Write co-state data
+    println(fid, "# COSTATE DATA")
+    println(fid, "Initialized Co-States:")
+    initCSVec = GetInitializedCostates(ito.csInit)
+    linestr = ""
+    for i in 1:length(initCSVec)
+        linestr *= string(initCSVec[i]) * "\t"
+    end
+    println(fid, linestr)
+    if ito.prob.homotopy 
+        solVec = GetHomotopySolutionVector(ito.solver)
+        ϵs = GetHomotopyParams(ito.solver)
+        cflags = GetHomotopyConvergenceFlags(ito.solver)
+        for i in 1:length(solVec)
+            println(fid, "param: " * string(ϵs[i]) * " converged: " * (cflags[i] ? "Yes" : "No"))
+            linestr = ""
+            for j in 1:length(solVec[i])
+                linestr *= string(solVec[i][j]) * "\t" 
+            end
+            println(fid, linestr)
+        end
+    else
+        println(fid, "converged " * (GetInitialGuessConverged(ito.solver) ? "Yes" : "No"))
+        linestr = ""
+        sol = GetSolution(ito.solver)
+        for i in 1:length(sol)
+            linestr *= string(sol[i]) * "\t"
+        end
+        println(fid, linestr)
+    end
+    println(fid, "# END COSTATE DATA")
+
+    # Close file
+    close(fid)
+    return nothing
+end
+
+function writeTextData(dom::DataOutputManager, ito::InitializedIndirectTrajOptimizer)
+    # Open file
+    fid = open(joinpath(dom.baseFolder, "textData", dom.fname*".txt"), "w")
+
+    # Write meta data
+    println(fid, "# META DATA")
+    println(fid, "File Format Version:\t" * dom.textFormatVersion * "i")
+    println(fid, "Solution Method:\t\t" * string(ito.solMethod))
+    println(fid, "Using Homotopy:\t\t\t" * (ito.prob.homotopy ? "Yes" : "No"))
+    println(fid, "# END META DATA"); println(fid, "")
+
+    # Write convergence data
+    println(fid, "# CONVERGENCE DATA")
+    if !(ito.csInit.ho isa Symbol)
+        if ito.time > 0.0
+            println(fid, "Time to Initialize:\t\t\t\t" * string(ito.time) * " sec")
+        end
+        if ito.iters > 0
+            println(fid, "Initialization Iterations:\t\t" * string(ito.iters))
+        end
+        if ito.fevals > 0
+            println(fid, "Initialization Func. Evals.:\t" * 
+                string(ito.fevals))
+        end
+        if ito.fval >= 0.0
+            println(fid, "Heuristic Opj. Function:\t\t" * string(ito.fval))
+        end
     end
     println(fid, "Initial Guess Converged:\t\t" * 
         (GetInitialGuessConverged(ito.solver) ? "Yes" : "No"))

@@ -37,8 +37,9 @@ include("CR3BP/initCR3BPIndirectParams.jl")
 
 # Indirect Optimization 
 include("IndirectOptimizationProblem.jl")
-include("DataOutputManager.jl")
+include("Utils/DataOutputManager.jl")
 include("IndirectTrajOptimizer.jl")
+include("Utils/writeData.jl")
 
 # Exports 
 # Utility functions

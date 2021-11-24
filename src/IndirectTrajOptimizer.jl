@@ -1,6 +1,6 @@
 abstract type AbstractIndirectTrajOptimizer end
 
-struct IndirectTrajOptimizer{IPT,CSIT,ST} <: AbstractIndirectOptimizationProblem
+struct IndirectTrajOptimizer{IPT,CSIT,ST} <: AbstractIndirectTrajOptimizer
     # Indirect Trajectory Optimization problem 
     prob::IPT
 
@@ -30,6 +30,60 @@ struct IndirectTrajOptimizer{IPT,CSIT,ST} <: AbstractIndirectOptimizationProblem
     maxStallTime::Float64
     maxTime::Float64
     useParallel::Bool 
+end
+
+struct InitializedIndirectTrajOptimizer{IPT,ST} <: AbstractIndirectTrajOptimizer
+    # Indirect Trajectory Optimization Problem
+    prob::IPT 
+    
+    # Indirect solver
+    solver::ST
+
+    # Data Output Manager
+    writingData::Bool
+    dataOutputManager::DataOutputManager
+
+    # Solution method
+    solMethod::Symbol
+
+    # Optional Info From Initialization 
+    fval::Float64
+    time::Float64
+    fevals::Int 
+    iters::Int
+end
+
+function IndirectTrajOptimizer(prob, λ0; solutionMethod = :FSS, homotopyParamVec = nothing, 
+    dataFolder = nothing, writeData = false, fval = -1.0, time = -1.0, fevals = -1, iters = -1)
+
+    # Check that homotopy parameter vector has been set if homotopy is used 
+    if prob.homotopy && homotopyParamVec === nothing
+        throw(ArgumentError("Problem specified to use homotopy continuation but continuation parameters not provided."))
+    end
+
+    # Inititialize Solver 
+    if solutionMethod == :FSS 
+        solver = FSSSolver(λ0, prob.iConds, prob.fConds, prob.BVPFunc, prob.BVPWithSTMFunc;
+            homotopy = prob.homotopy, homotopyParamVec = homotopyParamVec)
+    else
+        throw(ArgumentError("Only forward sigle shooting is implemented."))
+    end
+
+    # Initialize DataOutputManager
+    if dataFolder === nothing 
+        dataFolder = joinpath(pwd(), "data")
+    end
+    dataOutputManager = DataOutputManager(dataFolder)
+
+    # Create indirect optimizer
+    ito = InitializedIndirectTrajOptimizer{typeof(prob),typeof(solver)}(prob, solver, writeData, dataOutputManager, 
+        solutionMethod, fval, time, fevals, iters)
+
+    # Write initial data if desired
+    if ito.writingData
+        writeData(ito.dataOutputManager, ito)
+    end
+    return ito
 end
 
 function IndirectTrajOptimizer(prob; solutionMethod = :FSS, initCostFunc = :WSS, 
