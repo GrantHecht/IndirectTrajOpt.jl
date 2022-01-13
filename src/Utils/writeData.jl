@@ -40,7 +40,7 @@ function writeData(dom::DataOutputManager, ito::AbstractIndirectTrajOptimizer)
     end
 
     # Write data
-    writeBinaryData(dom, ito)
+    #writeBinaryData(dom, ito) # Not writing binary data as it hasn't been very useful
     writeTextData(dom, ito)
 
     return nothing
