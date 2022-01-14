@@ -61,7 +61,7 @@ function writeData(dom::DataOutputManager, ito)
     end
 
     # Write data
-    writeBinaryData(dom, ito)
+    #writeBinaryData(dom, ito)
     writeTextData(dom, ito)
 
     return nothing
