@@ -10,7 +10,7 @@ function integrate(y0, tspan, ps::AbstractCR3BPIndirectParams, dynamicsFlag::CR3
     # Solve ode 
     sol = solve(
         prob,
-        Vern9(),
+        Vern9(lazy = false),
         reltol = 1e-14,
         abstol = 1e-14,
         save_everystep = false,
@@ -40,7 +40,7 @@ function integrate(y0, tspan, ps::AbstractCR3BPIndirectParams, dynamicsFlag::CR3
     # Solve ode 
     sol = solve(
         prob,
-        Vern9(),
+        Vern9(lazy = false),
         reltol = 1e-14,
         abstol = 1e-14,
         save_everystep = false,
@@ -86,7 +86,7 @@ function integrateWithHomotopy(y0, tspan, ϵ, ps::AbstractCR3BPIndirectParams, d
     # Solve ode 
     sol = solve(
         prob,
-        Vern9(),
+        Vern9(lazy = false),
         reltol = 1e-14,
         abstol = 1e-14,
         save_everystep = false,
@@ -109,7 +109,7 @@ function integrate(z0, tspan, ps::CR3BPIndirectWithSTMParams, dynamicsFlag::CR3B
     # Solve ode 
     sol = solve(
         prob,
-        Vern9(),
+        Vern9(lazy = false),
         reltol = 1e-14,
         abstol = 1e-14,
         save_everystep = false,
@@ -131,7 +131,7 @@ function integrateWithHomotopy(z0, tspan, ϵ, ps::CR3BPIndirectWithSTMParams, dy
     # Solve ode 
     sol = solve(
         prob,
-        Vern9(),
+        Vern9(lazy = false),
         reltol = 1e-14,
         abstol = 1e-14,
         save_everystep = false,
@@ -153,7 +153,7 @@ function integrate(x0, tspan, scenario::String, dynamicsFlag::CR3BP,
     # Solve ode 
     sol = solve(
         prob,
-        Vern9(),
+        Vern9(lazy = false),
         reltol = 1e-14,
         abstol = 1e-14,
         maxiters = 1e7
