@@ -23,12 +23,12 @@ for utype in [0,1,2]
     ps.utype = utype
     # Evaluate eoms with Jacobian
     dz0 = zeros(210)
-    IndirectTrajOpt.cr3bpEomIndirectWithSTM!(dz0, z0, ps, 0.0)
+    IndirectTrajOpt.cr3bpEomIndirectWithSTM!(dz0, z0, ps, 0.0, MEMF())
 
     # Evaluate Jacobian of eoms with ForwardDiff
     dy0 = zeros(14)
     jac = ForwardDiff.jacobian(
-        (y,x)->IndirectTrajOpt.cr3bpEomIndirect!(y,x,ps,0.0), 
+        (y,x)->IndirectTrajOpt.cr3bpEomIndirect!(y,x,ps,0.0,MEMF()), 
         dy0, y0)
     ps.utype
     # Evaluate jacobian difference
@@ -45,12 +45,12 @@ for utype in [0,2]
     ps.utype = utype
     # Evaluate eoms with Jacobian
     dz0 = zeros(210)
-    IndirectTrajOpt.cr3bpEomIndirectWithSTM!(dz0, z0, ps, 0.0)
+    IndirectTrajOpt.cr3bpEomIndirectWithSTM!(dz0, z0, ps, 0.0, MEMF())
 
     # Evaluate Jacobian of eoms with ForwardDiff
     dy0 = zeros(14)
     jac = ForwardDiff.jacobian(
-        (y,x)->IndirectTrajOpt.cr3bpEomIndirect!(y,x,ps,0.0), 
+        (y,x)->IndirectTrajOpt.cr3bpEomIndirect!(y,x,ps,0.0,MEMF()), 
         dy0, y0)
     ps.utype
     # Evaluate jacobian difference
@@ -64,7 +64,8 @@ end
 
 # Define function for test
 function cr3bpAnalyticJacTestFunc(x, tspan, ps)
-    out, extra = cr3bpOptIntegrate(x, tspan, ps)
+    #out, extra = cr3bpOptIntegrate(x, tspan, ps)
+    out = integrate(x, tspan, ps, CR3BP(), Solving(), MEMF(); inPlace = true)
     return out
 end
 
@@ -72,7 +73,8 @@ end
 for ϵ in [1.0, 0.5, 0.0]
     ps.ϵ = ϵ
     tspan = (0.0, 8.6404*24*3600/ps.crp.TU)
-    zf = cr3bpOptWithSTMIntegrate(z0, tspan, ps)
+    #zf = cr3bpOptWithSTMIntegrate(z0, tspan, ps)
+    zf = integrate(z0, tspan, ps, CR3BP(), SolvingWithSTM(), MEMF())
 
     # Compute STM with ForwardDiff
     stm = ForwardDiff.jacobian(
