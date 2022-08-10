@@ -38,7 +38,7 @@ function IndirectTrajOptimizer(prob; solutionMethod = :FSS, initCostFunc = :WSS,
     iUBs = nothing, iLBs = nothing, weights = [10, 10, 10, 1, 1, 1, 1], MFD = 2.8e-6, display = true,
     displayInterval = 1, maxIters = 1000, funcTol = 1e-6, maxStallIters = 25, maxStallTime = 500,
     maxTime = 1800, useParallel = true, homotopyParamVec = nothing, dataFolder = nothing,
-    minNeighborhoodFraction = 0.25,writeData = false)
+    minNeighborhoodFraction = 0.25,writeData = false,initCallback = nothing)
 
     # Check that homotopy parameter vector has been set if homotopy is used 
     if prob.homotopy && homotopyParamVec === nothing
@@ -54,7 +54,8 @@ function IndirectTrajOptimizer(prob; solutionMethod = :FSS, initCostFunc = :WSS,
             iUBs = iUBs, iLBs = iLBs, weights = weights, MFD = MFD, display = display,
             displayInterval = displayInterval, maxIters = maxIters, funcTol, 
             maxStallIters = maxStallIters, maxStallTime = maxStallTime, maxTime = maxTime,
-            minNeighborhoodFraction = minNeighborhoodFraction, useParallel = useParallel)
+            minNeighborhoodFraction = minNeighborhoodFraction, useParallel = useParallel,
+	    callback = initCallback)
 
         # Initialize solver
         solver = FSSSolver(zeros(7), prob.iConds, prob.fConds, prob.BVPFunc, prob.BVPWithSTMFunc;

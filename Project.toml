@@ -1,7 +1,16 @@
+authors = ["Grant Hecht"]
 name = "IndirectTrajOpt"
 uuid = "99e47ffd-a99c-4d17-8b51-d4481b168213"
-authors = ["Grant Hecht"]
 version = "0.1.1"
+
+[compat]
+DataFrames = "1"
+DifferentialEquations = "6"
+JLD2 = "0.4"
+LoopVectorization = "0.12"
+Octavian = "0.3"
+StaticArrays = "1"
+julia = "1.6"
 
 [deps]
 BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
@@ -17,16 +26,8 @@ ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Suppressor = "fd094767-a336-5f1f-9728-57cf17d0bbfb"
 
-[compat]
-DataFrames = "1"
-DifferentialEquations = "6"
-JLD2 = "0.4"
-LoopVectorization = "0.12"
-Octavian = "0.3"
-StaticArrays = "1"
-julia = "1.6"
-
 [extras]
+CPUSummary = "2a0fbf3d-bb9c-48f3-b0a9-814d99fd7ab9"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
