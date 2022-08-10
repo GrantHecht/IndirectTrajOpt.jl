@@ -15,6 +15,7 @@ abstract type IntegrationFlag end
 # as first and second return values respectively.
 abstract type InitializationFlag <: IntegrationFlag end
 struct Initialization <: InitializationFlag end
+struct InitializationWithJacobianRankPenalty <: InitializationFlag end
 struct InitializationWithIntegralCost <: InitializationFlag end
 
 # Flag indicating integration to be performed for solving BVP via 
