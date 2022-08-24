@@ -38,7 +38,7 @@ function IndirectTrajOptimizer(prob; solutionMethod = :FSS, initCostFunc = :WSS,
     iUBs = nothing, iLBs = nothing, weights = [10, 10, 10, 1, 1, 1, 1], MFD = 2.8e-6, display = true,
     displayInterval = 1, maxIters = 1000, funcTol = 1e-6, maxStallIters = 25, maxStallTime = 500,
     maxTime = 1800, useParallel = true, homotopyParamVec = nothing, dataFolder = nothing,
-    minNeighborhoodFraction = 0.25,writeData = false,initCallback = nothing)
+    minNeighborhoodFraction = 0.25,writeData = false, initCallback = nothing)
 
     # Check that homotopy parameter vector has been set if homotopy is used 
     if prob.homotopy && homotopyParamVec === nothing
@@ -48,20 +48,34 @@ function IndirectTrajOptimizer(prob; solutionMethod = :FSS, initCostFunc = :WSS,
     # Initialize initializer and solver 
     if solutionMethod == :FSS
         # Initialize co-state initializer
-        csInit = FSSCoStateInitializer(prob.initBVPFunc, prob.iConds, prob.fConds;
+        csInit = FSSCoStateInitializer(prob.initBVPFunc, prob.tspan, prob.iConds, prob.fConds;
             costFunc = initCostFunc, optimizer = initOptimizer, numParticles = numParticles,
             numSwarms = numSwarms, initMethod = swarmInitMethod, UBs = UBs, LBs = LBs,
-            iUBs = iUBs, iLBs = iLBs, weights = weights, MFD = MFD, display = display,
-            displayInterval = displayInterval, maxIters = maxIters, funcTol, 
+            iUBs = iUBs, iLBs = iLBs, weights = weights, display = display,
+            displayInterval = displayInterval, maxIters = maxIters, funcTol = funcTol, 
+            MFD = MFD, minNeighborhoodFraction = minNeighborhoodFraction,
             maxStallIters = maxStallIters, maxStallTime = maxStallTime, maxTime = maxTime,
-            minNeighborhoodFraction = minNeighborhoodFraction, useParallel = useParallel,
-	    callback = initCallback)
+            useParallel = useParallel)
 
         # Initialize solver
-        solver = FSSSolver(zeros(7), prob.iConds, prob.fConds, prob.BVPFunc, prob.BVPWithSTMFunc;
+        solver = FSSSolver(zeros(7), tspan, prob.iConds, prob.fConds, prob.BVPFunc, prob.BVPWithSTMFunc;
+            homotopy = prob.homotopy, homotopyParamVec = homotopyParamVec)
+    elseif solutionMethod == :FMS
+        # Initialize co-state initializer
+        csInit = FSSCoStateInitializer(prob.initBVPFunc, prob.tspan, prob.iConds, prob.fConds;
+            costFunc = initCostFunc, optimizer = initOptimizer, numParticles = numParticles,
+            numSwarms = numSwarms, initMethod = swarmInitMethod, UBs = UBs, LBs = LBs,
+            iUBs = iUBs, iLBs = iLBs, weights = weights, display = display,
+            displayInterval = displayInterval, maxIters = maxIters, funcTol = funcTol, 
+            MFD = MFD, minNeighborhoodFraction = minNeighborhoodFraction,
+            maxStallIters = maxStallIters, maxStallTime = maxStallTime, maxTime = maxTime,
+            useParallel = useParallel)
+
+        # Initialize solver
+        solver = FSSSolver(zeros(7), tspan, prob.iConds, prob.fConds, prob.BVPFunc, prob.BVPWithSTMFunc;
             homotopy = prob.homotopy, homotopyParamVec = homotopyParamVec)
     else
-        throw(ArgumentError("Only forward sigle shooting is implemented."))
+        throw(ArgumentError("Only forward single and multiple shooting are implemented."))
     end
 
     # Initialize DataOutputManager 
