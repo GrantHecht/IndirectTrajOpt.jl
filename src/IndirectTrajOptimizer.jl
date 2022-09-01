@@ -32,64 +32,13 @@ struct IndirectTrajOptimizer{IPT,CSIT,ST} <: AbstractIndirectTrajOptimizer
     useParallel::Bool 
 end
 
-struct InitializedIndirectTrajOptimizer{IPT,ST} <: AbstractIndirectTrajOptimizer
-    # Indirect Trajectory Optimization Problem
-    prob::IPT 
-    
-    # Indirect solver
-    solver::ST
-
-    # Data Output Manager
-    writingData::Bool
-    dataOutputManager::DataOutputManager
-
-    # Initialized co-states 
-    λi::Vector{Float64}
-
-    # Solution method
-    solMethod::Symbol
-
-    # Optional Info From Initialization 
-    fval::Float64
-    time::Float64
-    fevals::Int 
-    iters::Int
-end
-
-function IndirectTrajOptimizer(prob, λ0; solutionMethod = :FSS, homotopyParamVec = nothing, 
-    dataFolder = nothing, writeData = false, fval = -1.0, time = -1.0, fevals = -1, iters = -1)
-
-    # Check that homotopy parameter vector has been set if homotopy is used 
-    if prob.homotopy && homotopyParamVec === nothing
-        throw(ArgumentError("Problem specified to use homotopy continuation but continuation parameters not provided."))
-    end
-
-    # Inititialize Solver 
-    if solutionMethod == :FSS 
-        solver = FSSSolver(λ0, prob.iConds, prob.fConds, prob.BVPFunc, prob.BVPWithSTMFunc;
-            homotopy = prob.homotopy, homotopyParamVec = homotopyParamVec)
-    else
-        throw(ArgumentError("Only forward sigle shooting is implemented."))
-    end
-
-    # Initialize DataOutputManager
-    if dataFolder === nothing 
-        dataFolder = joinpath(pwd(), "data")
-    end
-    dataOutputManager = DataOutputManager(dataFolder)
-
-    # Create indirect optimizer
-    InitializedIndirectTrajOptimizer{typeof(prob),typeof(solver)}(prob, solver, writeData, dataOutputManager, 
-        λ0,solutionMethod, fval, time, fevals, iters)
-end
-
-function IndirectTrajOptimizer(prob; solutionMethod = :FSS, initCostFunc = :WSS, 
+function IndirectTrajOptimizer(prob; solutionMethod = :FSS, nSeg = 4, initCostFunc = :WSS, 
     initOptimizer = :PSO, numParticles = 500, numSwarms = 4, swarmInitMethod = :Uniform, 
     UBs = [100, 100, 100, 50, 50, 50, 50], LBs = [-100, -100, -100, -50, -50, -50, -50],
     iUBs = nothing, iLBs = nothing, weights = [10, 10, 10, 1, 1, 1, 1], MFD = 2.8e-6, display = true,
     displayInterval = 1, maxIters = 1000, funcTol = 1e-6, maxStallIters = 25, maxStallTime = 500,
     maxTime = 1800, useParallel = true, homotopyParamVec = nothing, dataFolder = nothing,
-    minNeighborhoodFraction = 0.25,writeData = false)
+    minNeighborhoodFraction = 0.25,writeData = false, initCallback = nothing)
 
     # Check that homotopy parameter vector has been set if homotopy is used 
     if prob.homotopy && homotopyParamVec === nothing
@@ -99,19 +48,34 @@ function IndirectTrajOptimizer(prob; solutionMethod = :FSS, initCostFunc = :WSS,
     # Initialize initializer and solver 
     if solutionMethod == :FSS
         # Initialize co-state initializer
-        csInit = FSSCoStateInitializer(prob.initBVPFunc, prob.iConds, prob.fConds;
+        csInit = FSSCoStateInitializer(prob.initBVPFunc, prob.tspan, prob.iConds, prob.fConds;
             costFunc = initCostFunc, optimizer = initOptimizer, numParticles = numParticles,
             numSwarms = numSwarms, initMethod = swarmInitMethod, UBs = UBs, LBs = LBs,
-            iUBs = iUBs, iLBs = iLBs, weights = weights, MFD = MFD, display = display,
-            displayInterval = displayInterval, maxIters = maxIters, funcTol, 
+            iUBs = iUBs, iLBs = iLBs, weights = weights, display = display,
+            displayInterval = displayInterval, maxIters = maxIters, funcTol = funcTol, 
+            MFD = MFD, minNeighborhoodFraction = minNeighborhoodFraction,
             maxStallIters = maxStallIters, maxStallTime = maxStallTime, maxTime = maxTime,
-            minNeighborhoodFraction = minNeighborhoodFraction, useParallel = useParallel)
+            useParallel = useParallel)
 
         # Initialize solver
-        solver = FSSSolver(zeros(7), prob.iConds, prob.fConds, prob.BVPFunc, prob.BVPWithSTMFunc;
+        solver = FSSSolver(zeros(7), tspan, prob.iConds, prob.fConds, prob.BVPFunc, prob.BVPWithSTMFunc;
             homotopy = prob.homotopy, homotopyParamVec = homotopyParamVec)
+    elseif solutionMethod == :FMS
+        # Initialize co-state initializer
+        csInit = FSSCoStateInitializer(prob.initBVPFunc, prob.tspan, prob.iConds, prob.fConds;
+            costFunc = initCostFunc, optimizer = initOptimizer, numParticles = numParticles,
+            numSwarms = numSwarms, initMethod = swarmInitMethod, UBs = UBs, LBs = LBs,
+            iUBs = iUBs, iLBs = iLBs, weights = weights, display = display,
+            displayInterval = displayInterval, maxIters = maxIters, funcTol = funcTol, 
+            MFD = MFD, minNeighborhoodFraction = minNeighborhoodFraction,
+            maxStallIters = maxStallIters, maxStallTime = maxStallTime, maxTime = maxTime,
+            useParallel = useParallel)
+
+        # Initialize solver
+        solver = FMSSolver(tspan, prob.iConds, prob.fConds, prob.BVPFunc, prob.BVPWithSTMFunc;
+            homotopy = prob.homotopy, homotopyParamVec = homotopyParamVec, nSeg = nSeg)
     else
-        throw(ArgumentError("Only forward sigle shooting is implemented."))
+        throw(ArgumentError("Only forward single and multiple shooting are implemented."))
     end
 
     # Initialize DataOutputManager 
@@ -161,23 +125,23 @@ function solve!(ito::IndirectTrajOptimizer; factor = 3.0, ftol = 1e-8, showTrace
     return nothing
 end
 
-function solve!(ito::InitializedIndirectTrajOptimizer; factor = 3.0, ftol = 1e-8, showTrace = true, convergenceAttempts = 4)
-    # Initial data write because we havent yet with initialized trajectory optimizer
-    if ito.writingData; writeData(ito.dataOutputManager, ito); end
+# function solve!(ito::InitializedIndirectTrajOptimizer; factor = 3.0, ftol = 1e-8, showTrace = true, convergenceAttempts = 4)
+#     # Initial data write because we havent yet with initialized trajectory optimizer
+#     if ito.writingData; writeData(ito.dataOutputManager, ito); end
 
-    # Solve 
-    solve!(ito.solver; factor = factor, ftol = ftol, showTrace = showTrace, convergenceAttempts = convergenceAttempts)
+#     # Solve 
+#     solve!(ito.solver; factor = factor, ftol = ftol, showTrace = showTrace, convergenceAttempts = convergenceAttempts)
 
-    # Write data if desired 
-    if ito.writingData; writeData(ito.dataOutputManager, ito); end
+#     # Write data if desired 
+#     if ito.writingData; writeData(ito.dataOutputManager, ito); end
 
-    return nothing
-end
+#     return nothing
+# end
 
 
 function tSolve!(itoVec; factor = 3.0, ftol = 1e-8, showTrace = true, convergenceAttempts = 4)
     p = Progress(length(itoVec), 1, "Solving BVPs: ")
-    Threads.@threads for i in 1:length(itoVec)
+    Threads.@threads for i in eachindex(itoVec)
         solve!(itoVec[i]; factor = factor, ftol = ftol, showTrace = showTrace, convergenceAttempts = convergenceAttempts)
         next!(p)
     end

@@ -27,9 +27,7 @@ for utype in [0,1,2]
 
     # Evaluate Jacobian of eoms with ForwardDiff
     dy0 = zeros(14)
-    jac = ForwardDiff.jacobian(
-        (y,x)->IndirectTrajOpt.cr3bpEomIndirect!(y,x,ps,0.0, MEMF()), 
-        dy0, y0)
+    jac = ForwardDiff.jacobian((y,x)->IndirectTrajOpt.cr3bpEomIndirect!(y,x,ps,0.0,MEMF()),dy0, y0)
     ps.utype
     # Evaluate jacobian difference
     jacDiff = abs.(reshape(dz0[15:end], (14,14)) .- jac)
@@ -49,10 +47,8 @@ for utype in [0,2]
 
     # Evaluate Jacobian of eoms with ForwardDiff
     dy0 = zeros(14)
-    jac = ForwardDiff.jacobian(
-        (y,x)->IndirectTrajOpt.cr3bpEomIndirect!(y,x,ps,0.0, MEMF()), 
-        dy0, y0)
-    ps.utype
+    jac = ForwardDiff.jacobian((y,x)->IndirectTrajOpt.cr3bpEomIndirect!(y,x,ps,0.0,MEMF()), dy0, y0)
+
     # Evaluate jacobian difference
     jacDiff = abs.(reshape(dz0[15:end], (14,14)) .- jac)
 
@@ -106,29 +102,29 @@ for utype in [0,2]
 end
 
 # Define function for test
-"""
-function cr3bpAnalyticJacTestFunc(x, tspan, ps)
-    out, extra = cr3bpOptIntegrate(x, tspan, ps)
+function cr3bpAnalyticJacTestFunc(x, tspan, ps, homotopyFlag)
+    out = integrate(x, tspan, ps, CR3BP(), Solving(), homotopyFlag; inPlace = true)
     return out
 end
 
 # Integrate state and co-states with STM 
 for ϵ in [1.0, 0.5, 0.0]
-    ps.ϵ = ϵ
-    tspan = (0.0, 8.6404*24*3600/ps.crp.TU)
-    zf = cr3bpOptWithSTMIntegrate(z0, tspan, ps)
+    for flag in [MEMF(), HypTanMF()]
+        ps.ϵ = ϵ
+        tspan = (0.0, 8.6404*24*3600/ps.crp.TU)
+        zf = integrate(z0, tspan, ps, CR3BP(), SolvingWithSTM(), flag)
 
-    # Compute STM with ForwardDiff
-    stm = ForwardDiff.jacobian(
-        (x)->cr3bpAnalyticJacTestFunc(x, tspan, ps), y0)
+        # Compute STM with ForwardDiff
+        stm = ForwardDiff.jacobian(
+            (x)->cr3bpAnalyticJacTestFunc(x, tspan, ps, flag), y0)
 
-    # Evaluate STM difference
-    jacDiff = abs.(reshape(zf[15:end], (14,14)) .- stm)
-    display(jacDiff)
+        # Evaluate STM difference
+        jacDiff = abs.(reshape(zf[15:end], (14,14)) .- stm)
+        #display(jacDiff)
 
-    # Tests 
-    for i in 1:196
-        @test jacDiff[i] < 1e-2
+        # Tests 
+        for i in 1:196
+            @test jacDiff[i] < 1e-2
+        end
     end
 end
-"""

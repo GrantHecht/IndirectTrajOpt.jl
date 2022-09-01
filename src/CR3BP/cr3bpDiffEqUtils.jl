@@ -167,8 +167,8 @@ function createCR3BPODEWithSTMProb(z0::AbstractVector, tspan::Tuple, params::CR3
     # Instantiate callback
     cb = ContinuousCallback(
         (x,t,integ) -> cr3bpEomsConditionNoTerm(x,t,integ, homotopyFlag),
-        (integ) -> cr3bpEomsAffectNoTerm!(integ, homotopyFlag),
-        (integ) -> cr3bpEomsAffectNoTerm!(integ, homotopyFlag);
+        (integ) -> cr3bpEomsAffectNoTermWithSTM!(integ, homotopyFlag),
+        (integ) -> cr3bpEomsAffectNoTermWithSTM!(integ, homotopyFlag);
         idxs = nothing,
         rootfind = true,
         interp_points = 10,

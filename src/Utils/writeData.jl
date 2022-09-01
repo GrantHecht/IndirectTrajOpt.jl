@@ -40,7 +40,6 @@ function writeData(dom::DataOutputManager, ito::AbstractIndirectTrajOptimizer)
     end
 
     # Write data
-    #writeBinaryData(dom, ito) # Not writing binary data as it hasn't been very useful
     writeTextData(dom, ito)
 
     return nothing
@@ -192,7 +191,7 @@ function writeTextData(dom::DataOutputManager, ito::IndirectTrajOptimizer)
     return nothing
 end
 
-function writeTextData(dom::DataOutputManager, ito::InitializedIndirectTrajOptimizer)
+function writeTextData(dom::DataOutputManager, ito::IndirectTrajOptimizer)
     # Open file
     fid = open(joinpath(dom.baseFolder, "textData", dom.fname*".txt"), "w")
 
