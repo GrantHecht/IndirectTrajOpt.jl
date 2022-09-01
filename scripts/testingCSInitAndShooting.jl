@@ -4,17 +4,19 @@ using IndirectCoStateInit
 using IndirectShooting
 using StaticArrays
 
+function main()
 # Initialize BVP function w/o STM
+homotopyFlag = HypTanMF()
 ps = initCR3BPIndirectParams("Low Thrust 10 CR3BP")
 tspan = (0.0, 8.6404*24*3600/ps.crp.TU)
-bvpFunc(y0, tspan)          = integrate(y0, tspan, ps, CR3BP(), Initialization(), MEMF();
+bvpFunc(y0, tspan)          = integrate(y0, tspan, ps, CR3BP(), Initialization(), homotopyFlag;
                                 copyParams = true, termCallbacks = true)
 
 # Initialize BVP function w/ STM 
 psSTM = initCR3BPIndirectWithSTMParams("Low Thrust 10 CR3BP")
-bvpFuncNoSTM(z0, tspan, ϵ)  = integrateWithHomotopy(z0, tspan, ϵ, ps, CR3BP(), Solving(), MEMF(); 
+bvpFuncNoSTM(z0, tspan, ϵ)  = integrateWithHomotopy(z0, tspan, ϵ, ps, CR3BP(), Solving(), homotopyFlag; 
                                 copyParams = true, inPlace = true)
-bvpFuncWSTM(z0, tspan, ϵ)   = integrateWithHomotopy(z0, tspan, ϵ, psSTM, CR3BP(), SolvingWithSTM(), MEMF(); 
+bvpFuncWSTM(z0, tspan, ϵ)   = integrateWithHomotopy(z0, tspan, ϵ, psSTM, CR3BP(), SolvingWithSTM(), homotopyFlag; 
                                 copyParams = true)
 
 # Set initial and final conditions 
@@ -38,7 +40,7 @@ csInitializer = FSSCoStateInitializer(bvpFunc, tspan, ics, fcs;
                                     );
 
 # Initialize co-states 
-#initialize!(csInitializer)
+initialize!(csInitializer)
 
 # Initialize Shooting Solver 
 #solver = FMSSolver(tspan, ics, fcs, bvpFuncNoSTM, bvpFuncWSTM; 
@@ -47,7 +49,10 @@ csInitializer = FSSCoStateInitializer(bvpFunc, tspan, ics, fcs;
 solver = FSSSolver(zeros(7), tspan, ics, fcs, bvpFuncNoSTM, bvpFuncWSTM;
     homotopy = true, homotopyParamVec = [(j^2 - 1)/(25^2 - 1) for j in 25:-1:1])
 
-#initializeData!(solver, GetInitializedCostates(csInitializer))
-initializeData!(solver, [38.001552852205165,-8.852425666012932,8.0455841251262,-0.03299197673388485,-0.1158935565431321,0.01232378525555284,3.6106167249739882])
+initializeData!(solver, GetInitializedCostates(csInitializer))
+#initializeData!(solver, [-2.6707081396941725,-9.862381304089858,-0.1782290991473871,0.026658364214557077,-0.017969473881695463,-0.0001358138411930675,0.2362018260203737])
 
 solve!(solver)
+end
+
+main()

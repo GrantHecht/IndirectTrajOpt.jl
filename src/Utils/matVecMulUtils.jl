@@ -18,7 +18,10 @@ end
 function vecOuterProdPlusI!(C, a, b)
     @turbo for i ∈ eachindex(b)
         for j ∈ eachindex(a)
-            C[j,i] = a[j]*b[i] + I[j,i]
+            C[j,i] = a[j]*b[i]
         end
+    end
+    @turbo for i ∈ eachindex(b)
+        C[i,i] += 1.0
     end
 end

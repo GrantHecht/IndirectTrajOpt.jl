@@ -191,73 +191,73 @@ function writeTextData(dom::DataOutputManager, ito::IndirectTrajOptimizer)
     return nothing
 end
 
-function writeTextData(dom::DataOutputManager, ito::IndirectTrajOptimizer)
-    # Open file
-    fid = open(joinpath(dom.baseFolder, "textData", dom.fname*".txt"), "w")
+# function writeTextData(dom::DataOutputManager, ito::IndirectTrajOptimizer)
+#     # Open file
+#     fid = open(joinpath(dom.baseFolder, "textData", dom.fname*".txt"), "w")
 
-    # Write meta data
-    println(fid, "# META DATA")
-    println(fid, "File Format Version:\t" * dom.textFormatVersion * "i")
-    println(fid, "Solution Method:\t\t" * string(ito.solMethod))
-    println(fid, "Using Homotopy:\t\t\t" * (ito.prob.homotopy ? "Yes" : "No"))
-    println(fid, "# END META DATA"); println(fid, "")
+#     # Write meta data
+#     println(fid, "# META DATA")
+#     println(fid, "File Format Version:\t" * dom.textFormatVersion * "i")
+#     println(fid, "Solution Method:\t\t" * string(ito.solMethod))
+#     println(fid, "Using Homotopy:\t\t\t" * (ito.prob.homotopy ? "Yes" : "No"))
+#     println(fid, "# END META DATA"); println(fid, "")
 
-    # Write convergence data
-    println(fid, "# CONVERGENCE DATA")
-    if ito.time > 0.0
-        println(fid, "Time to Initialize:\t\t\t\t" * string(ito.time) * " sec")
-    end
-    if ito.iters > 0
-        println(fid, "Initialization Iterations:\t\t" * string(ito.iters))
-    end
-    if ito.fevals > 0
-        println(fid, "Initialization Func. Evals.:\t" * 
-            string(ito.fevals))
-    end
-    if ito.fval >= 0.0
-        println(fid, "Heuristic Opj. Function:\t\t" * string(ito.fval))
-    end
-    println(fid, "Initial Guess Converged:\t\t" * 
-        (GetInitialGuessConverged(ito.solver) ? "Yes" : "No"))
-    if ito.prob.homotopy 
-        println(fid, "Homotopy Converged:\t\t\t\t" * 
-        (GetHomotopyConverged(ito.solver) ? "Yes" : "No"))
-    end
-    println(fid, "# END CONVERGENCE DATA"); println(fid, "")
+#     # Write convergence data
+#     println(fid, "# CONVERGENCE DATA")
+#     if ito.time > 0.0
+#         println(fid, "Time to Initialize:\t\t\t\t" * string(ito.time) * " sec")
+#     end
+#     if ito.iters > 0
+#         println(fid, "Initialization Iterations:\t\t" * string(ito.iters))
+#     end
+#     if ito.fevals > 0
+#         println(fid, "Initialization Func. Evals.:\t" * 
+#             string(ito.fevals))
+#     end
+#     if ito.fval >= 0.0
+#         println(fid, "Heuristic Opj. Function:\t\t" * string(ito.fval))
+#     end
+#     println(fid, "Initial Guess Converged:\t\t" * 
+#         (GetInitialGuessConverged(ito.solver) ? "Yes" : "No"))
+#     if ito.prob.homotopy 
+#         println(fid, "Homotopy Converged:\t\t\t\t" * 
+#         (GetHomotopyConverged(ito.solver) ? "Yes" : "No"))
+#     end
+#     println(fid, "# END CONVERGENCE DATA"); println(fid, "")
 
-    # Write co-state data
-    println(fid, "# COSTATE DATA")
-    println(fid, "Initialized Co-States:")
-    initCSVec = ito.λi
-    linestr = ""
-    for i in 1:length(initCSVec)
-        linestr *= string(initCSVec[i]) * "\t"
-    end
-    println(fid, linestr)
-    if ito.prob.homotopy 
-        solVec = GetHomotopySolutionVector(ito.solver)
-        ϵs = GetHomotopyParams(ito.solver)
-        cflags = GetHomotopyConvergenceFlags(ito.solver)
-        for i in 1:length(solVec)
-            println(fid, "param: " * string(ϵs[i]) * " converged: " * (cflags[i] ? "Yes" : "No"))
-            linestr = ""
-            for j in 1:length(solVec[i])
-                linestr *= string(solVec[i][j]) * "\t" 
-            end
-            println(fid, linestr)
-        end
-    else
-        println(fid, "converged " * (GetInitialGuessConverged(ito.solver) ? "Yes" : "No"))
-        linestr = ""
-        sol = GetSolution(ito.solver)
-        for i in 1:length(sol)
-            linestr *= string(sol[i]) * "\t"
-        end
-        println(fid, linestr)
-    end
-    println(fid, "# END COSTATE DATA")
+#     # Write co-state data
+#     println(fid, "# COSTATE DATA")
+#     println(fid, "Initialized Co-States:")
+#     initCSVec = ito.λi
+#     linestr = ""
+#     for i in 1:length(initCSVec)
+#         linestr *= string(initCSVec[i]) * "\t"
+#     end
+#     println(fid, linestr)
+#     if ito.prob.homotopy 
+#         solVec = GetHomotopySolutionVector(ito.solver)
+#         ϵs = GetHomotopyParams(ito.solver)
+#         cflags = GetHomotopyConvergenceFlags(ito.solver)
+#         for i in 1:length(solVec)
+#             println(fid, "param: " * string(ϵs[i]) * " converged: " * (cflags[i] ? "Yes" : "No"))
+#             linestr = ""
+#             for j in 1:length(solVec[i])
+#                 linestr *= string(solVec[i][j]) * "\t" 
+#             end
+#             println(fid, linestr)
+#         end
+#     else
+#         println(fid, "converged " * (GetInitialGuessConverged(ito.solver) ? "Yes" : "No"))
+#         linestr = ""
+#         sol = GetSolution(ito.solver)
+#         for i in 1:length(sol)
+#             linestr *= string(sol[i]) * "\t"
+#         end
+#         println(fid, linestr)
+#     end
+#     println(fid, "# END COSTATE DATA")
 
-    # Close file
-    close(fid)
-    return nothing
-end
+#     # Close file
+#     close(fid)
+#     return nothing
+# end
