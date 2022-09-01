@@ -32,7 +32,7 @@ struct IndirectTrajOptimizer{IPT,CSIT,ST} <: AbstractIndirectOptimizationProblem
     useParallel::Bool 
 end
 
-function IndirectTrajOptimizer(prob; solutionMethod = :FSS, initCostFunc = :WSS, 
+function IndirectTrajOptimizer(prob; solutionMethod = :FSS, nSeg = 4, initCostFunc = :WSS, 
     initOptimizer = :PSO, numParticles = 500, numSwarms = 4, swarmInitMethod = :Uniform, 
     UBs = [100, 100, 100, 50, 50, 50, 50], LBs = [-100, -100, -100, -50, -50, -50, -50],
     iUBs = nothing, iLBs = nothing, weights = [10, 10, 10, 1, 1, 1, 1], MFD = 2.8e-6, display = true,
@@ -72,8 +72,8 @@ function IndirectTrajOptimizer(prob; solutionMethod = :FSS, initCostFunc = :WSS,
             useParallel = useParallel)
 
         # Initialize solver
-        solver = FSSSolver(zeros(7), tspan, prob.iConds, prob.fConds, prob.BVPFunc, prob.BVPWithSTMFunc;
-            homotopy = prob.homotopy, homotopyParamVec = homotopyParamVec)
+        solver = FMSSolver(tspan, prob.iConds, prob.fConds, prob.BVPFunc, prob.BVPWithSTMFunc;
+            homotopy = prob.homotopy, homotopyParamVec = homotopyParamVec, nSeg = nSeg)
     else
         throw(ArgumentError("Only forward single and multiple shooting are implemented."))
     end
@@ -127,7 +127,7 @@ end
 
 function tSolve!(itoVec; factor = 3.0, ftol = 1e-8, showTrace = true, convergenceAttempts = 4)
     p = Progress(length(itoVec), 1, "Solving BVPs: ")
-    Threads.@threads for i in 1:length(itoVec)
+    Threads.@threads for i in eachindex(itoVec)
         solve!(itoVec[i]; factor = factor, ftol = ftol, showTrace = showTrace, convergenceAttempts = convergenceAttempts)
         next!(p)
     end
