@@ -36,13 +36,16 @@ function IndirectOptimizationProblem(scenario::String, iConds::AbstractVector, f
         # Initialize parameters 
         ps = initCR3BPIndirectParams(scenario)
         psSTM = initCR3BPIndirectWithSTMParams(scenario)
+        
+        # Get parameters for initialization function
+        psForInit = (initializationFlag isa InitializationWithJacobianRankPenalty) ? psSTM : ps
 
         # Scale tspan
         daysToTU = 86400/ps.crp.TU
         tspanScalled = (tspan[1]*daysToTU, tspan[2]*daysToTU)
 
         # Initialize functions
-        initBVPFunc(y0) = integrate(y0, tspanScalled, ps, CR3BP(), initializationFlag, homotopyFlag; 
+        initBVPFunc(y0) = integrate(y0, tspanScalled, psForInit, CR3BP(), initializationFlag, homotopyFlag; 
                                     copyParams = true, termCallbacks = true)
         if homotopy == true
             BVPFunc(y0, ϵ)        = integrateWithHomotopy(y0, tspanScalled, ϵ, ps, CR3BP(), Solving(), homotopyFlag; 

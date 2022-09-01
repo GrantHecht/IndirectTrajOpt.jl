@@ -51,6 +51,7 @@ export CR3BP
 export MEMF
 export HypTenMF
 export Initialization
+export InitializationWithJacobianRankPenalty
 export InitializationWithIntegralCost
 export Solving
 export SolvingWithSTM
